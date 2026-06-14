@@ -830,9 +830,14 @@ body.cursor-active button:hover ~ #cursor-dot{width:6px;height:6px;}
 /* ═══════════════════════════════════════════════
    CONFIG — fill in after creating a JSONBin.io account
 ═══════════════════════════════════════════════ */
-const ADMIN_PASSWORD = 'admin123';       // change this password!
-const JSONBIN_KEY    = '$2a$10$fx8FRk6FoZOZdPtjQP5QheodVYlk5LCMIZ.sM4Ia6tE8T09djLWFa';   // X-Master-Key z jsonbin.io
-const JSONBIN_BIN    = '6a2ef3abda38895dfebfbb64';      // ID bina z jsonbin.io
+const ADMIN_PASSWORD_HASH = '08c1a25b65f0c6fb9e8a31eb49a36c1f723629ff7d9cb50c8dfdaa89a99c2a3e';
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+const JSONBIN_KEY    = 'WKLEJ_SWOJ_KLUCZ_API';   // X-Master-Key z jsonbin.io
+const JSONBIN_BIN    = 'WKLEJ_SWOJ_BIN_ID';      // ID bina z jsonbin.io
 const JSONBIN_URL    = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN;
 
 /* ═══════════════════════════════════════════════
@@ -1018,9 +1023,10 @@ document.getElementById('admin-toggle-btn').addEventListener('click', function()
   setTimeout(() => loginPass.focus(), 80);
 });
 
-function tryLogin() {
+async function tryLogin() {
   const pw = loginPass.value;
-  if (pw === ADMIN_PASSWORD) {
+  const hash = await hashPassword(pw);
+  if (hash === ADMIN_PASSWORD_HASH) {
     loginOverlay.classList.remove('show');
     setAdminMode(true);
     loginMsg.textContent = '';
