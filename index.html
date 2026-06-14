@@ -260,6 +260,29 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
 .donut-hint{color:var(--green-dim);font-size:12px;margin-top:20px;}
 .donut-title{color:var(--amber);font-size:12px;margin-bottom:12px;letter-spacing:2px;}
 
+/* ═══════════════════════════════════════════
+   TETRIS EASTER EGG
+═══════════════════════════════════════════ */
+#tetris-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:9500;align-items:center;justify-content:center;}
+#tetris-overlay.show{display:flex;}
+#tetris-box{border:1px solid var(--border2);background:var(--bg2);width:340px;}
+#tetris-titlebar{background:var(--bg3);border-bottom:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;gap:8px;}
+#tetris-title{color:var(--muted);font-size:12px;flex:1;margin-left:6px;}
+#tetris-close{background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer;font-family:'Courier New',monospace;padding:0 2px;}
+#tetris-close:hover{color:var(--red);}
+#tetris-main{display:flex;gap:0;padding:12px;}
+#tetris-canvas{border:1px solid var(--border2);image-rendering:pixelated;display:block;}
+#tetris-side{padding-left:12px;display:flex;flex-direction:column;gap:8px;min-width:92px;}
+.t-panel{background:var(--bg3);border:1px solid var(--border);padding:6px 8px;}
+.t-label{color:var(--amber);font-size:10px;letter-spacing:1px;margin-bottom:3px;}
+.t-label::before{content:'# ';color:var(--amber-dim);}
+.t-val{color:var(--green);font-size:16px;font-weight:bold;}
+#tetris-next{display:block;background:var(--bg);border:none;}
+.t-key{color:var(--muted);font-size:10px;margin-bottom:1px;}
+#tetris-restart{background:transparent;border:1px solid var(--border2);color:var(--green-dim);font-family:'Courier New',monospace;font-size:11px;padding:4px 8px;cursor:pointer;width:100%;margin-top:auto;}
+#tetris-restart:hover{border-color:var(--green);color:var(--green);}
+#tetris-msg{text-align:center;font-size:13px;color:var(--amber);padding:6px;min-height:28px;border-top:1px solid var(--border);background:var(--bg3);}
+
 /* KONAMI hint hidden */
 .konami-hint{position:fixed;bottom:14px;right:16px;color:#1a3a1a;font-size:10px;z-index:100;user-select:none;}
 </style>
@@ -443,6 +466,48 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
   </div>
 </div>
 
+<!-- ═══ TETRIS EASTER EGG ═══ -->
+<div id="tetris-overlay">
+  <div id="tetris-box">
+    <div id="tetris-titlebar">
+      <div class="win-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span id="tetris-title">tetris.exe — szuszjan@blog</span>
+      <button id="tetris-close">✕</button>
+    </div>
+    <div id="tetris-main">
+      <canvas id="tetris-canvas" width="200" height="400"></canvas>
+      <div id="tetris-side">
+        <div class="t-panel">
+          <div class="t-label">SCORE</div>
+          <div class="t-val" id="t-score">0</div>
+        </div>
+        <div class="t-panel">
+          <div class="t-label">LEVEL</div>
+          <div class="t-val" id="t-level">1</div>
+        </div>
+        <div class="t-panel">
+          <div class="t-label">LINES</div>
+          <div class="t-val" id="t-lines">0</div>
+        </div>
+        <div class="t-panel">
+          <div class="t-label">NEXT</div>
+          <canvas id="tetris-next" width="80" height="80"></canvas>
+        </div>
+        <div class="t-panel" style="margin-top:10px;">
+          <div class="t-label" style="margin-bottom:6px;">KLAWISZE</div>
+          <div class="t-key">← → ruch</div>
+          <div class="t-key">↑ obróć</div>
+          <div class="t-key">↓ szybciej</div>
+          <div class="t-key">SPACJA drop</div>
+          <div class="t-key">P pauza</div>
+        </div>
+        <button id="tetris-restart">[R] restart</button>
+      </div>
+    </div>
+    <div id="tetris-msg"></div>
+  </div>
+</div>
+
 <!-- ═══ DONUT EASTER EGG ═══ -->
 <div id="donut-overlay">
   <div class="donut-title">★ EASTER EGG — donut.c by Andy Sloane (2006) ★</div>
@@ -602,7 +667,7 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
           <div class="uptime-row"><span>uptime</span><span class="val">99.98%</span></div>
           <div class="uptime-row"><span>build</span><span class="val">static html</span></div>
           <div class="uptime-row"><span>version</span><span class="val">v3.0.0</span></div>
-          <div class="uptime-row"><span>easter egg</span><span class="val" style="color:var(--amber)">↑↑↓↓←→←→BA</span></div>
+          <div class="uptime-row"><span>easter <span id="egg-trigger" style="cursor:pointer;border-bottom:1px dashed var(--amber);color:var(--amber);" title="kliknij...">egg</span></span><span class="val" style="color:var(--amber)">↑↑↓↓←→←→BA</span></div>
         </div>
       </div>
     </aside>
@@ -1135,6 +1200,208 @@ function hideDonut() {
 }
 donutOverlay.addEventListener('click', hideDonut);
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && donutOverlay.classList.contains('show')) hideDonut(); });
+
+/* ═══════════════════════════════════════════════════════════
+   TETRIS ENGINE
+═══════════════════════════════════════════════════════════ */
+(function() {
+  const OV  = document.getElementById('tetris-overlay');
+  const CV  = document.getElementById('tetris-canvas');
+  const NX  = document.getElementById('tetris-next');
+  const CTX = CV.getContext('2d');
+  const NXC = NX.getContext('2d');
+  const MSG = document.getElementById('tetris-msg');
+
+  const COLS=10, ROWS=20, SZ=20;
+  const COLORS = ['','#33ff33','#00cccc','#ffaa00','#ff6666','#cc88ff','#ffdd44','#55aaff'];
+  const PIECES = [
+    null,
+    [[1,1,1,1]],                          // I
+    [[2,0],[2,0],[2,2]],                  // J  (mirror)
+    [[0,3],[0,3],[3,3]],                  // L
+    [[4,4],[4,4]],                        // O
+    [[0,5,5],[5,5,0]],                    // S
+    [[6,6,6],[0,6,0]],                    // T
+    [[7,7,0],[0,7,7]],                    // Z
+  ];
+
+  let board, piece, pieceX, pieceY, pieceType, nextType;
+  let score, level, lines, running, paused, raf, dropTimer, dropInterval;
+
+  function newBoard() { return Array.from({length:ROWS},()=>new Array(COLS).fill(0)); }
+
+  function randType() { return Math.floor(Math.random()*7)+1; }
+
+  function rotate(p) {
+    const r=p[0].length, c=p.length;
+    return Array.from({length:r},(_,i)=>Array.from({length:c},(_,j)=>p[c-1-j][i]));
+  }
+
+  function fits(p, x, y) {
+    for(let r=0;r<p.length;r++) for(let c=0;c<p[r].length;c++) {
+      if(!p[r][c]) continue;
+      const nx=x+c, ny=y+r;
+      if(nx<0||nx>=COLS||ny>=ROWS) return false;
+      if(ny>=0 && board[ny][nx]) return false;
+    }
+    return true;
+  }
+
+  function place() {
+    for(let r=0;r<piece.length;r++) for(let c=0;c<piece[r].length;c++) {
+      if(piece[r][c] && pieceY+r>=0) board[pieceY+r][pieceX+c]=piece[r][c];
+    }
+  }
+
+  function clearLines() {
+    let cleared=0;
+    for(let r=ROWS-1;r>=0;r--) {
+      if(board[r].every(c=>c)) { board.splice(r,1); board.unshift(new Array(COLS).fill(0)); cleared++; r++; }
+    }
+    if(cleared) {
+      const pts=[0,100,300,500,800][cleared]*level;
+      score+=pts; lines+=cleared;
+      level=Math.floor(lines/10)+1;
+      dropInterval=Math.max(100,600-level*50);
+      document.getElementById('t-score').textContent=score;
+      document.getElementById('t-level').textContent=level;
+      document.getElementById('t-lines').textContent=lines;
+    }
+  }
+
+  function spawnPiece() {
+    pieceType=nextType||randType();
+    nextType=randType();
+    piece=PIECES[pieceType].map(r=>[...r]);
+    pieceX=Math.floor((COLS-piece[0].length)/2);
+    pieceY=-piece.length+1;
+    if(!fits(piece,pieceX,pieceY+1)) { gameOver(); return false; }
+    drawNext();
+    return true;
+  }
+
+  function drop() {
+    if(!running||paused) return;
+    if(fits(piece,pieceX,pieceY+1)) { pieceY++; }
+    else {
+      place();
+      clearLines();
+      if(!spawnPiece()) return;
+    }
+    draw();
+  }
+
+  function gameOver() {
+    running=false;
+    MSG.textContent='GAME OVER — wynik: '+score+' | [R] restart';
+    MSG.style.color='var(--red)';
+    cancelAnimationFrame(raf);
+    clearInterval(dropTimer);
+  }
+
+  function draw() {
+    CTX.fillStyle='#050505'; CTX.fillRect(0,0,CV.width,CV.height);
+    // grid lines
+    CTX.strokeStyle='#0d1a0d'; CTX.lineWidth=0.5;
+    for(let c=0;c<=COLS;c++){CTX.beginPath();CTX.moveTo(c*SZ,0);CTX.lineTo(c*SZ,ROWS*SZ);CTX.stroke();}
+    for(let r=0;r<=ROWS;r++){CTX.beginPath();CTX.moveTo(0,r*SZ);CTX.lineTo(COLS*SZ,r*SZ);CTX.stroke();}
+    // board
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+      if(board[r][c]) drawCell(CTX,c,r,COLORS[board[r][c]]);
+    }
+    // ghost piece
+    let gy=pieceY;
+    while(fits(piece,pieceX,gy+1)) gy++;
+    for(let r=0;r<piece.length;r++) for(let c=0;c<piece[r].length;c++) {
+      if(piece[r][c]) {
+        CTX.fillStyle='rgba(255,255,255,0.06)';
+        CTX.fillRect((pieceX+c)*SZ+1,(gy+r)*SZ+1,SZ-2,SZ-2);
+      }
+    }
+    // active piece
+    for(let r=0;r<piece.length;r++) for(let c=0;c<piece[r].length;c++) {
+      if(piece[r][c] && pieceY+r>=0) drawCell(CTX,pieceX+c,pieceY+r,COLORS[piece[r][c]]);
+    }
+    // pause overlay
+    if(paused) {
+      CTX.fillStyle='rgba(0,0,0,0.6)'; CTX.fillRect(0,0,CV.width,CV.height);
+      CTX.fillStyle='#33ff33'; CTX.font='bold 16px Courier New';
+      CTX.textAlign='center'; CTX.fillText('[ PAUZA ]',CV.width/2,CV.height/2);
+    }
+  }
+
+  function drawCell(ctx,c,r,color) {
+    ctx.fillStyle=color;
+    ctx.fillRect(c*SZ+1,r*SZ+1,SZ-2,SZ-2);
+    ctx.fillStyle='rgba(255,255,255,0.25)';
+    ctx.fillRect(c*SZ+1,r*SZ+1,SZ-2,3);
+    ctx.fillStyle='rgba(0,0,0,0.25)';
+    ctx.fillRect(c*SZ+1,r*SZ+SZ-3,SZ-2,2);
+  }
+
+  function drawNext() {
+    NXC.fillStyle='#050505'; NXC.fillRect(0,0,NX.width,NX.height);
+    const p=PIECES[nextType];
+    const ox=Math.floor((4-p[0].length)/2), oy=Math.floor((4-p.length)/2);
+    for(let r=0;r<p.length;r++) for(let c=0;c<p[r].length;c++) {
+      if(p[r][c]) drawCell(NXC,ox+c,oy+r,COLORS[nextType]);
+    }
+  }
+
+  function startGame() {
+    board=newBoard(); score=0; level=1; lines=0; running=true; paused=false;
+    dropInterval=550; nextType=randType();
+    document.getElementById('t-score').textContent='0';
+    document.getElementById('t-level').textContent='1';
+    document.getElementById('t-lines').textContent='0';
+    MSG.textContent=''; MSG.style.color='var(--amber)';
+    clearInterval(dropTimer);
+    spawnPiece();
+    draw();
+    dropTimer=setInterval(drop, dropInterval);
+  }
+
+  function showTetris() {
+    OV.classList.add('show');
+    startGame();
+  }
+  function hideTetris() {
+    OV.classList.remove('show');
+    running=false; paused=false;
+    clearInterval(dropTimer);
+    cancelAnimationFrame(raf);
+  }
+
+  document.getElementById('egg-trigger').addEventListener('click', showTetris);
+  document.getElementById('tetris-close').addEventListener('click', hideTetris);
+  document.getElementById('tetris-restart').addEventListener('click', startGame);
+
+  document.addEventListener('keydown', function(e) {
+    if(!OV.classList.contains('show')) return;
+    if(e.key==='Escape'){ hideTetris(); return; }
+    if(!running) { if(e.key==='r'||e.key==='R') startGame(); return; }
+    switch(e.key) {
+      case 'ArrowLeft':  if(fits(piece,pieceX-1,pieceY)){pieceX--;draw();} e.preventDefault(); break;
+      case 'ArrowRight': if(fits(piece,pieceX+1,pieceY)){pieceX++;draw();} e.preventDefault(); break;
+      case 'ArrowDown':  drop(); e.preventDefault(); break;
+      case 'ArrowUp':
+        const rot=rotate(piece);
+        if(fits(rot,pieceX,pieceY)){piece=rot;}
+        else if(fits(rot,pieceX-1,pieceY)){piece=rot;pieceX--;}
+        else if(fits(rot,pieceX+1,pieceY)){piece=rot;pieceX++;}
+        draw(); e.preventDefault(); break;
+      case ' ':
+        while(fits(piece,pieceX,pieceY+1)) pieceY++;
+        drop(); e.preventDefault(); break;
+      case 'p': case 'P':
+        paused=!paused;
+        MSG.textContent=paused?'[ PAUZA — P aby wznowić ]':'';
+        draw();
+        break;
+      case 'r': case 'R': startGame(); break;
+    }
+  });
+})();
 
 /* ═══════════════════════════════════════════════
    KONAMI CODE → DONUT
