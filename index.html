@@ -512,10 +512,12 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
 
 <script>
 /* ═══════════════════════════════════════════════
-   CONFIG
+   CONFIG — wypełnij po założeniu konta JSONBin.io
 ═══════════════════════════════════════════════ */
-const ADMIN_PASSWORD = 'admin123'; // zmień to hasło!
-const STORAGE_KEY = 'szuszjan_posts';
+const ADMIN_PASSWORD = 'admin123';       // zmień na swoje hasło!
+const JSONBIN_KEY    = 'WKLEJ_SWOJ_KLUCZ_API';   // X-Master-Key z jsonbin.io
+const JSONBIN_BIN    = 'WKLEJ_SWOJ_BIN_ID';      // ID bina z jsonbin.io
+const JSONBIN_URL    = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN;
 
 /* ═══════════════════════════════════════════════
    STATE
@@ -523,27 +525,78 @@ const STORAGE_KEY = 'szuszjan_posts';
 let isAdmin = false;
 let loginAttempts = 0;
 let currentFilter = null;
+let cachedPosts = null;   // cache żeby nie odpytywać API przy każdym filtrze
 
 /* ═══════════════════════════════════════════════
-   POSTS — localStorage
+   HELPERS — status w terminalu
 ═══════════════════════════════════════════════ */
-function loadPosts() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch(e) { return []; }
+function setStatus(msg, color) {
+  const el = document.getElementById('main-prompt');
+  el.textContent = msg;
+  el.style.color = color || 'var(--cyan)';
 }
-function savePosts(posts) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+
+/* ═══════════════════════════════════════════════
+   POSTS — JSONBin API
+═══════════════════════════════════════════════ */
+
+// Pobierz wszystkie posty z JSONBin
+async function fetchPosts() {
+  if (JSONBIN_KEY === 'WKLEJ_SWOJ_KLUCZ_API') {
+    // Tryb demo — brak konfiguracji
+    return [];
+  }
+  try {
+    setStatus('szuszjan@blog:~$ curl -s ' + JSONBIN_URL + '/latest', 'var(--amber)');
+    const res = await fetch(JSONBIN_URL + '/latest', {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    cachedPosts = data.record.posts || [];
+    setStatus('szuszjan@blog:~$', 'var(--cyan)');
+    return cachedPosts;
+  } catch(e) {
+    setStatus('szuszjan@blog:~$ # błąd połączenia z JSONBin!', 'var(--red)');
+    console.error('JSONBin fetch error:', e);
+    return cachedPosts || [];
+  }
 }
-function deletePost(id) {
-  if (!confirm('Usunąć post "' + id + '"?')) return;
-  const posts = loadPosts().filter(p => p.id !== id);
-  savePosts(posts);
+
+// Zapisz całą tablicę postów do JSONBin (PUT nadpisuje)
+async function savePosts(posts) {
+  if (JSONBIN_KEY === 'WKLEJ_SWOJ_KLUCZ_API') return;
+  try {
+    setStatus('szuszjan@blog:~$ # zapisywanie...', 'var(--amber)');
+    const res = await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_KEY
+      },
+      body: JSON.stringify({ posts })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    cachedPosts = posts;
+    setStatus('szuszjan@blog:~$ # zapisano ✓', 'var(--green)');
+    setTimeout(() => setStatus('szuszjan@blog:~$', 'var(--cyan)'), 2000);
+  } catch(e) {
+    setStatus('szuszjan@blog:~$ # błąd zapisu!', 'var(--red)');
+    console.error('JSONBin save error:', e);
+    throw e;
+  }
+}
+
+async function deletePost(id) {
+  if (!confirm('Usunąć post?')) return;
+  const posts = (cachedPosts || []).filter(p => p.id !== id);
+  await savePosts(posts);
   renderPosts();
 }
-function addPost(post) {
-  const posts = loadPosts();
-  posts.unshift(post);
-  savePosts(posts);
+
+async function addPost(post) {
+  const posts = [post, ...(cachedPosts || [])];
+  await savePosts(posts);
   renderPosts();
 }
 
@@ -552,20 +605,30 @@ function addPost(post) {
 ═══════════════════════════════════════════════ */
 const CAT_LABELS = {arduino:'ARDUINO',embedded:'EMBEDDED',m5stack:'M5STACK',linux:'LINUX',project:'PROJEKT'};
 
-function renderPosts(filter) {
+async function renderPosts(filter) {
   if (filter !== undefined) currentFilter = filter;
-  const posts = loadPosts();
   const container = document.getElementById('posts-container');
+
+  // Pokaż spinner tylko gdy nie mamy cache
+  if (!cachedPosts) {
+    container.innerHTML = '<div class="empty-state"><div class="es-title" style="color:var(--amber)">[ ładowanie postów... ]</div>' +
+      '<div class="es-sub" style="color:var(--muted)">GET ' + JSONBIN_URL + '/latest</div></div>';
+  }
+
+  const posts = await fetchPosts();
   const filtered = currentFilter ? posts.filter(p => p.cat === currentFilter) : posts;
   document.getElementById('stat-posts').textContent = posts.length;
 
   if (filtered.length === 0) {
+    const unconfigured = JSONBIN_KEY === 'WKLEJ_SWOJ_KLUCZ_API';
     container.innerHTML = '<div class="empty-state">' +
-      '<div class="es-title">' + (currentFilter ? 'Brak postów w tej kategorii.' : 'Brak postów.') + '</div>' +
+      '<div class="es-title">' + (unconfigured ? 'JSONBin nie skonfigurowany.' : currentFilter ? 'Brak postów w tej kategorii.' : 'Brak postów.') + '</div>' +
       '<div class="es-sub">' +
-        (isAdmin
-          ? 'Kliknij [+] ./new-post.sh powyżej, aby dodać pierwszy post.'
-          : 'Jeszcze tu cicho. Wróć wkrótce.<br><span style="color:var(--muted)"># admin może dodać posty przez przycisk [+]</span>') +
+        (unconfigured
+          ? 'Wypełnij JSONBIN_KEY i JSONBIN_BIN w pliku szuszjan.html.<br><span style="color:var(--muted)"># instrukcja powyżej w czacie z Claude</span>'
+          : isAdmin
+            ? 'Kliknij [+] ./new-post.sh powyżej, aby dodać pierwszy post.'
+            : 'Jeszcze tu cicho. Wróć wkrótce.<br><span style="color:var(--muted)"># admin może dodać posty przez przycisk [+]</span>') +
       '</div></div>';
     return;
   }
@@ -611,7 +674,7 @@ function setAdminMode(on) {
   document.getElementById('session-txt').textContent = on
     ? 'admin@szuszjan:~ — ROOT SESSION ACTIVE'
     : 'szuszjan@blog:~ — bash — 120×40';
-  renderPosts();
+  renderPosts(); // async — odświeża widok del-buttonów bez re-fetch (cache)
 }
 
 /* ═══════════════════════════════════════════════
@@ -677,7 +740,7 @@ function closePostForm() { postFormOverlay.classList.remove('show'); }
 document.getElementById('pf-close').addEventListener('click', closePostForm);
 document.getElementById('pf-cancel').addEventListener('click', closePostForm);
 
-document.getElementById('pf-save').addEventListener('click', function() {
+document.getElementById('pf-save').addEventListener('click', async function() {
   const title   = document.getElementById('pf-title').value.trim();
   const cat     = document.getElementById('pf-cat').value;
   const excerpt = document.getElementById('pf-excerpt').value.trim();
@@ -688,14 +751,25 @@ document.getElementById('pf-save').addEventListener('click', function() {
   if (!title) { alert('Podaj tytuł posta!'); return; }
   if (!excerpt) { alert('Podaj zajawkę!'); return; }
 
+  const btn = this;
+  btn.textContent = '[ zapisywanie... ]';
+  btn.disabled = true;
+
   const post = {
     id: 'post-' + Date.now(),
     title, cat, excerpt, tags, readTime, content,
     date: new Date().toISOString(),
     views: 0
   };
-  addPost(post);
-  closePostForm();
+  try {
+    await addPost(post);
+    closePostForm();
+  } catch(e) {
+    alert('Błąd zapisu do JSONBin! Sprawdź klucz API i BIN ID.');
+  } finally {
+    btn.textContent = '[CTRL+S] Zapisz post';
+    btn.disabled = false;
+  }
 });
 
 document.addEventListener('keydown', function(e) {
@@ -717,6 +791,7 @@ document.querySelectorAll('.htag').forEach(tag => {
   tag.addEventListener('click', function() {
     document.querySelectorAll('.htag').forEach(t => t.classList.remove('active'));
     this.classList.add('active');
+    cachedPosts = null; // wymuś re-fetch przy zmianie filtra
     renderPosts(this.dataset.filter || null);
   });
 });
