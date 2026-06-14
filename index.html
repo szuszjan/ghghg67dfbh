@@ -285,9 +285,94 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
 
 /* KONAMI hint hidden */
 .konami-hint{position:fixed;bottom:14px;right:16px;color:#1a3a1a;font-size:10px;z-index:100;user-select:none;}
+
+/* BOOT SEQUENCE */
+#boot-screen{position:fixed;inset:0;background:#050505;z-index:99999;display:flex;flex-direction:column;justify-content:flex-start;padding:24px 32px;overflow:hidden;font-family:'Courier New',Courier,monospace;}
+#boot-screen.hidden{display:none;}
+#boot-log{font-size:13px;line-height:1.7;flex:1;}
+.bl{display:block;opacity:0;animation:blfade 0.05s forwards;}
+@keyframes blfade{to{opacity:1;}}
+.bl-ok{color:#33ff33;} .bl-warn{color:#ffaa00;} .bl-err{color:#ff4444;} .bl-dim{color:#2a5a2a;} .bl-hi{color:#00cccc;} .bl-white{color:#cccccc;}
+.bl-tag{display:inline-block;padding:0 6px;margin-right:6px;font-size:11px;font-weight:bold;}
+.tag-ok{background:#1a3a1a;color:#33ff33;} .tag-warn{background:#3a2a00;color:#ffaa00;} .tag-fail{background:#3a0a0a;color:#ff4444;}
+#boot-skip{position:absolute;bottom:20px;right:28px;color:#1a5a1a;font-size:12px;animation:blink 1s step-end infinite;cursor:pointer;user-select:none;}
+#boot-skip:hover{color:#33ff33;}
+#boot-progress{height:2px;background:#1a3a1a;margin-top:12px;position:relative;overflow:hidden;}
+#boot-progress-fill{height:100%;background:#33ff33;width:0%;transition:width 0.1s linear;}
+#boot-bar-label{color:#1a7a1a;font-size:11px;margin-top:4px;}
+
+/* CODE COPY BUTTON */
+.code-block-wrap{position:relative;margin:12px 0;}
+.code-block-wrap pre{background:#050505;border:1px solid #1a3a1a;padding:32px 14px 12px;overflow-x:auto;font-family:'Courier New',monospace;font-size:12px;color:#88ff88;line-height:1.6;}
+.code-lang{position:absolute;top:0;left:0;background:#1a3a1a;color:#2a7a2a;font-size:10px;padding:1px 8px;letter-spacing:1px;}
+.copy-btn{position:absolute;top:4px;right:6px;background:transparent;border:1px solid #2a5a2a;color:#1a7a1a;font-family:'Courier New',monospace;font-size:11px;padding:2px 8px;cursor:pointer;transition:all .15s;}
+.copy-btn:hover{border-color:#33ff33;color:#33ff33;}
+.copy-btn.copied{color:#0a0a0a;background:#33ff33;border-color:#33ff33;}
+
+/* 404 PAGE */
+#page-404{display:none;min-height:60vh;padding:40px 0;}
+#page-404.show{display:block;}
+.e404-terminal{max-width:640px;margin:0 auto;border:1px solid #2a5a2a;background:#0d0d0d;}
+.e404-titlebar{background:#111111;border-bottom:1px solid #1a3a1a;padding:6px 14px;display:flex;align-items:center;gap:8px;}
+.e404-body{padding:24px 28px;}
+.e404-ascii{white-space:pre;font-size:10px;line-height:1.2;color:#ff4444;margin-bottom:16px;overflow-x:auto;}
+.e404-line{font-size:13px;margin-bottom:4px;line-height:1.7;}
+.e404-prompt-row{display:flex;gap:6px;margin-top:16px;align-items:center;}
+.e404-ps1{color:#00cccc;font-size:13px;white-space:nowrap;}
+.e404-input{flex:1;background:transparent;border:none;border-bottom:1px solid #1a3a1a;color:#33ff33;font-family:'Courier New',monospace;font-size:13px;padding:2px 6px;outline:none;}
+.e404-input:focus{border-color:#33ff33;}
+.e404-output{margin-top:10px;font-size:12px;color:#1a7a1a;min-height:20px;white-space:pre-wrap;}
+.e404-suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.e404-sug{font-size:12px;padding:3px 10px;border:1px solid #1a3a1a;color:#1a7a1a;cursor:pointer;}
+.e404-sug:hover{border-color:#33ff33;color:#33ff33;}
 </style>
 </head>
 <body>
+
+<!-- ═══ BOOT SCREEN ═══ -->
+<div id="boot-screen">
+  <div id="boot-log"></div>
+  <div id="boot-progress"><div id="boot-progress-fill"></div></div>
+  <div id="boot-bar-label">initializing...</div>
+  <div id="boot-skip">[SPACJA / ENTER] pomiń _</div>
+</div>
+
+<!-- ═══ 404 PAGE ═══ -->
+<div id="page-404">
+  <div class="page">
+    <div class="e404-terminal">
+      <div class="e404-titlebar">
+        <div class="win-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <span style="color:#444;font-size:12px;margin-left:6px;">szuszjan@blog:~ — bash</span>
+      </div>
+      <div class="e404-body">
+        <div class="e404-ascii">
+  _  _    ___  _  _
+ | || |  / _ \| || |
+ | || |_| | | | || |_
+ |__   _| | | |__   _|
+    | | | |_| |  | |
+    |_|  \___/   |_|
+</div>
+        <div class="e404-line" style="color:#ff4444;">bash: <span id="e404-path" style="color:#cc88ff;">/strona</span>: No such file or directory</div>
+        <div class="e404-line" style="color:#2a5a2a;">Exit code: 127 &nbsp;|&nbsp; errno: ENOENT &nbsp;|&nbsp; <span style="color:#ffaa00;">coś tu nie gra...</span></div>
+        <div class="e404-line" style="color:#1a5a1a;margin-top:8px;"># Może wpisz komendę — pomogę znaleźć to czego szukasz:</div>
+        <div class="e404-prompt-row">
+          <span class="e404-ps1">szuszjan@blog:~$</span>
+          <input class="e404-input" id="e404-input" type="text" placeholder="help" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="e404-output" id="e404-output"></div>
+        <div class="e404-suggestions">
+          <span class="e404-sug" onclick="e404cmd('ls')">ls</span>
+          <span class="e404-sug" onclick="e404cmd('help')">help</span>
+          <span class="e404-sug" onclick="e404cmd('cd home')">cd home</span>
+          <span class="e404-sug" onclick="e404cmd('cat README.md')">cat README.md</span>
+          <span class="e404-sug" onclick="e404cmd('ls posty')">ls posty</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ LOGIN OVERLAY ═══ -->
 <div id="login-overlay">
@@ -548,12 +633,12 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
 <!-- ═══ HERO ═══ -->
 <div class="hero">
   <div class="hero-inner">
-<pre class="ascii-logo"><span class="dim">________</span><span class="hi">                        </span><span class="dim">________               </span>
-<span class="dim">__  ___/</span><span class="mid">_________  ___________</span><span class="hi">_____</span><span class="dim">(_)</span><span class="hi">_____ _______</span>
-<span class="dim">_____ \</span><span class="mid">___  /_  / / /_  ___/</span><span class="hi">__  /</span><span class="dim">____  /</span><span class="hi">_  __ `/_  __ \</span>
-<span class="mid">____/ /</span><span class="dim">__  /_</span><span class="hi">/ /_/ /_(__  )</span><span class="mid">__  /</span><span class="hi">____  / </span><span class="mid">/ /_/ /_  / / /</span>
-<span class="hi">/____/ </span><span class="mid">_____/\__,_/ /____/ </span><span class="dim">_____/</span><span class="hi">__  /  \__,_/ /_/ /_/</span>
-<span class="dim">                                /___/</span>                  </pre>
+<pre class="ascii-logo"><span class="dim"> _________</span><span class="hi">                                 </span><span class="dim">__               </span>
+<span class="dim">/   _____/</span><span class="mid">_________ __  ______________  </span><span class="hi">  |__|</span><span class="mid">____    ____  </span>
+<span class="hi">\_____  \</span><span class="mid">\___   /  |  \/  ___/\___   /</span><span class="hi">    |  \__  \  /    \ </span>
+<span class="mid">/        \/    /|  |  /\___ \  /    /</span><span class="hi">     |  |/ __ \|   |  \</span>
+<span class="hi">/_______  /_____ \____//____  &gt;/_____ \/\__|  (____  /___|  /</span>
+<span class="dim">        \/      \/          \/       \/\______/    \/     \/ </span></pre>
     <div class="tagline">
       # elektronika / embedded / arduino / linux / m5stack &nbsp;|&nbsp;
       <span>build · flash · hack · repeat</span>
@@ -1419,9 +1504,248 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* ═══════════════════════════════════════════════
+   BOOT SEQUENCE
+═══════════════════════════════════════════════ */
+(function() {
+  const SKIP_KEY = 'szuszjan_booted';
+  const bootEl   = document.getElementById('boot-screen');
+  const logEl    = document.getElementById('boot-log');
+  const fillEl   = document.getElementById('boot-progress-fill');
+  const lblEl    = document.getElementById('boot-bar-label');
+
+  // Raz na sesję — nie pokazuj przy każdym kliknięciu linku
+  if (sessionStorage.getItem(SKIP_KEY)) { bootEl.classList.add('hidden'); initPage(); return; }
+
+  const lines = [
+    {t:0,   cls:'bl-dim',   tx:'SZUSZJAN BLOG BIOS v3.0.0 — Copyright (C) 2025'},
+    {t:80,  cls:'bl-dim',   tx:'CPU: MajsterCore i7 @ 4.2 GHz  RAM: 32768 MB OK'},
+    {t:160, cls:'bl-dim',   tx:'Detecting storage... NVMe /dev/sda: 512GB'},
+    {t:260, cls:'bl-hi',    tx:''},
+    {t:280, cls:'bl-hi',    tx:'Loading GRUB 2.06...'},
+    {t:420, cls:'bl-ok',    tx:'[    0.000] Booting Linux kernel 6.8.0-szuszjan #1 SMP'},
+    {t:500, cls:'bl-ok',    tx:'[    0.012] ACPI: IRQ0 used by override.'},
+    {t:560, cls:'bl-ok',    tx:'[    0.044] PCI: Using configuration type 1 for base access'},
+    {t:620, cls:'bl-ok',    tx:'[    0.198] Initializing cgroup subsys cpuset'},
+    {t:680, cls:'bl-ok',    tx:'[    0.234] NET: Registered PF_INET6 protocol family'},
+    {t:730, cls:'bl-ok',    tx:'[    0.301] SCSI subsystem initialized'},
+    {t:790, cls:'bl-warn',  tx:'[    0.388] ACPI Warning: _OSC failed (AE_NOT_FOUND) (20230628/utosi-98)'},
+    {t:840, cls:'bl-ok',    tx:'[    0.412] Serial: 8250/16550 driver, 32 ports'},
+    {t:890, cls:'bl-ok',    tx:'[    0.501] loop: module loaded'},
+    {t:940, cls:'bl-ok',    tx:'[    0.612] systemd[1]: systemd v254 running in system mode'},
+    {t:990, cls:'bl-hi',    tx:''},
+    {t:1010,cls:'bl-white', tx:'         Starting szuszjan.blog services...'},
+    {t:1100,cls:'bl-ok',    tx:'[  OK  ] Started JSONBin API connector.'},
+    {t:1160,cls:'bl-ok',    tx:'[  OK  ] Mounted /mnt/posty (jsonbin://szuszjan).'},
+    {t:1220,cls:'bl-warn',  tx:'[WARN  ] easter.egg module loaded — use responsibly.'},
+    {t:1280,cls:'bl-ok',    tx:'[  OK  ] Started Tetris daemon (tetrisd.service).'},
+    {t:1340,cls:'bl-ok',    tx:'[  OK  ] Started Donut renderer (donut.c port).'},
+    {t:1400,cls:'bl-ok',    tx:'[  OK  ] Reached target szuszjan.blog — system is up.'},
+    {t:1460,cls:'bl-hi',    tx:''},
+    {t:1480,cls:'bl-white', tx:'szuszjan login: admin'},
+    {t:1560,cls:'bl-white', tx:'Password: ••••••••'},
+    {t:1680,cls:'bl-ok',    tx:'Last login: ' + new Date().toUTCString()},
+    {t:1750,cls:'bl-hi',    tx:'Welcome to Szuszjan Blog v3.0.0 LTS (GNU/Linux 6.8.0)'},
+    {t:1820,cls:'bl-dim',   tx:'  * Dokumentacja:  https://szuszjan.github.io'},
+    {t:1870,cls:'bl-dim',   tx:'  * Projekty:      github.com/szuszjan'},
+    {t:1920,cls:'bl-hi',    tx:''},
+  ];
+
+  const totalTime = 2200;
+  let skipped = false;
+
+  function skip() {
+    if (skipped) return;
+    skipped = true;
+    sessionStorage.setItem(SKIP_KEY, '1');
+    bootEl.style.transition = 'opacity 0.4s';
+    bootEl.style.opacity = '0';
+    setTimeout(() => { bootEl.classList.add('hidden'); initPage(); }, 400);
+  }
+
+  document.getElementById('boot-skip').addEventListener('click', skip);
+  document.addEventListener('keydown', function handler(e) {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); skip(); document.removeEventListener('keydown', handler); }
+  });
+
+  // Render lines with delays
+  lines.forEach(line => {
+    setTimeout(() => {
+      if (skipped) return;
+      const el = document.createElement('span');
+      el.className = 'bl ' + line.cls;
+      el.textContent = line.tx;
+      logEl.appendChild(el);
+      logEl.scrollTop = logEl.scrollHeight;
+      const pct = Math.min(100, Math.round((line.t / totalTime) * 100));
+      fillEl.style.width = pct + '%';
+      lblEl.textContent = pct < 100 ? 'loading... ' + pct + '%' : 'system ready';
+    }, line.t);
+  });
+
+  setTimeout(() => {
+    if (skipped) return;
+    fillEl.style.width = '100%';
+    lblEl.textContent = 'system ready — starting blog...';
+    setTimeout(skip, 350);
+  }, totalTime);
+
+  function initPage() { renderPosts(); }
+})();
+
+/* ═══════════════════════════════════════════════
+   COPY-TO-CLIPBOARD dla bloków kodu w postach
+   Wywoływane po wyrenderowaniu treści posta
+═══════════════════════════════════════════════ */
+function applyCodeCopy(container) {
+  if (!container) return;
+  container.querySelectorAll('pre code, pre').forEach(function(el) {
+    const pre = el.tagName === 'PRE' ? el : el.parentElement;
+    if (pre.parentElement && pre.parentElement.classList.contains('code-block-wrap')) return;
+    // Wykryj język z klasy (np. language-c)
+    const codeEl = pre.querySelector('code') || pre;
+    const langMatch = (codeEl.className||'').match(/language-(\w+)/);
+    const lang = langMatch ? langMatch[1].toUpperCase() : 'CODE';
+    // Opakuj
+    const wrap = document.createElement('div');
+    wrap.className = 'code-block-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    // Badge języka
+    const badge = document.createElement('span');
+    badge.className = 'code-lang';
+    badge.textContent = lang;
+    wrap.appendChild(badge);
+    // Przycisk kopiowania
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = '[copy]';
+    btn.setAttribute('aria-label', 'Kopiuj kod');
+    btn.addEventListener('click', function() {
+      const text = (pre.querySelector('code') || pre).innerText;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = '[copied!]';
+        btn.classList.add('copied');
+        setTimeout(function() { btn.textContent = '[copy]'; btn.classList.remove('copied'); }, 2000);
+      }).catch(function() {
+        btn.textContent = '[err]';
+        setTimeout(function() { btn.textContent = '[copy]'; }, 1500);
+      });
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   STRONA 404
+═══════════════════════════════════════════════ */
+(function() {
+  const el404 = document.getElementById('page-404');
+  const input  = document.getElementById('e404-input');
+  const output = document.getElementById('e404-output');
+
+  // Sprawdź hash — jeśli #404 pokaż stronę błędu
+  function check404() {
+    if (window.location.hash === '#404') {
+      el404.classList.add('show');
+      document.getElementById('e404-path').textContent = window.location.pathname || '/unknown';
+      setTimeout(() => input && input.focus(), 100);
+    }
+  }
+  check404();
+  window.addEventListener('hashchange', check404);
+
+  const CMDS = {
+    'help': function() {
+      return [
+        '<span style="color:#ffaa00">Dostępne komendy:</span>',
+        '  <span style="color:#33ff33">ls</span>         — lista sekcji bloga',
+        '  <span style="color:#33ff33">ls posty</span>   — lista postów',
+        '  <span style="color:#33ff33">cd home</span>    — wróć na stronę główną',
+        '  <span style="color:#33ff33">cat README.md</span> — o blogu',
+        '  <span style="color:#33ff33">whoami</span>     — kim jesteś?',
+        '  <span style="color:#33ff33">clear</span>      — wyczyść terminal',
+      ].join('\n');
+    },
+    'ls': function() {
+      return [
+        '<span style="color:#00cccc">drwxr-xr-x</span>  home/',
+        '<span style="color:#00cccc">drwxr-xr-x</span>  arduino/',
+        '<span style="color:#00cccc">drwxr-xr-x</span>  embedded/',
+        '<span style="color:#00cccc">drwxr-xr-x</span>  m5stack/',
+        '<span style="color:#00cccc">drwxr-xr-x</span>  linux/',
+        '<span style="color:#00cccc">drwxr-xr-x</span>  projekty/',
+        '-rw-r--r--  README.md',
+      ].join('\n');
+    },
+    'ls posty': function() {
+      const posts = window.cachedPosts || [];
+      if (!posts.length) return '<span style="color:#444"># brak postów — jeszcze tu cicho</span>';
+      return posts.map((p,i) => '<span style="color:#33ff33">' + String(i+1).padStart(2,'0') + '</span>  ' + p.title).join('\n');
+    },
+    'cd home': function() { setTimeout(() => { window.location.hash = ''; window.location.href = '/'; }, 400); return '<span style="color:#33ff33">→ przekierowuję na stronę główną...</span>'; },
+    'cd /':    function() { setTimeout(() => { window.location.href = '/'; }, 400); return '<span style="color:#33ff33">→ przekierowuję...</span>'; },
+    'cat README.md': function() {
+      return [
+        '<span style="color:#ffaa00"># Szuszjan Blog</span>',
+        '',
+        'Blog o elektronice, embedded, Arduino, M5Stack i Linuksie.',
+        'Buduję rzeczy żeby zrozumieć jak działają.',
+        '',
+        '<span style="color:#00cccc">Autor:</span>  szuszjan',
+        '<span style="color:#00cccc">Wersja:</span> v3.0.0',
+        '<span style="color:#00cccc">Host:</span>   github-pages',
+      ].join('\n');
+    },
+    'whoami':  function() { return 'visitor — gość bez uprawnień. Użyj <span style="color:#ffaa00">su admin</span> na stronie głównej.'; },
+    'pwd':     function() { return window.location.pathname || '/'; },
+    'clear':   function() { output.innerHTML = ''; return null; },
+    'exit':    function() { setTimeout(() => { window.location.href = '/'; }, 400); return 'logout...'; },
+    'uname -a':function() { return 'Linux szuszjan.blog 6.8.0 #1 SMP GNU/Linux x86_64'; },
+    'uptime':  function() {
+      const started = new Date('2025-01-01');
+      const days = Math.floor((Date.now() - started) / 86400000);
+      return 'up ' + days + ' days — load average: 0.01, 0.01, 0.00';
+    },
+    'sudo rm -rf /': function() { return '<span style="color:#ff4444">bash: permission denied — nice try ;)</span>'; },
+    'sl':      function() { return '<span style="color:#ffaa00">      ====] (steam locomotive not found — apt install sl?)</span>'; },
+    'vim':     function() { return '<span style="color:#444"># Jak wyjść z vim: ESC → :q! → ENTER</span>\n<span style="color:#1a5a1a"># ...ale najpierw tu nie ma nic do edycji :)</span>'; },
+  };
+
+  window.e404cmd = function(cmd) {
+    if (input) input.value = cmd;
+    runCmd(cmd);
+  };
+
+  function runCmd(cmd) {
+    const c = cmd.trim().toLowerCase();
+    const fn = CMDS[c] || CMDS[cmd.trim()];
+    let result;
+    if (fn) {
+      result = fn();
+    } else if (!c) {
+      return;
+    } else {
+      result = '<span style="color:#ff4444">bash: ' + cmd.trim() + ': command not found</span>\n<span style="color:#1a7a1a"># wpisz <span style="color:#33ff33">help</span> aby zobaczyć dostępne komendy</span>';
+    }
+    if (result !== null && result !== undefined) {
+      output.innerHTML = result;
+    }
+    if (input) input.value = '';
+  }
+
+  if (input) {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') runCmd(this.value);
+    });
+  }
+})();
+
+/* ═══════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════ */
-renderPosts();
+// renderPosts() wywoływane przez boot sequence
+// Jeśli boot pominięty przez sessionStorage — wywołaj teraz
+if (sessionStorage.getItem('szuszjan_booted')) renderPosts();
 </script>
 </body>
 </html>
