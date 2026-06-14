@@ -836,8 +836,8 @@ async function hashPassword(pw) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
   return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
 }
-const JSONBIN_KEY    = 'WKLEJ_SWOJ_KLUCZ_API';   // X-Master-Key z jsonbin.io
-const JSONBIN_BIN    = 'WKLEJ_SWOJ_BIN_ID';      // ID bina z jsonbin.io
+const JSONBIN_KEY    = '$2a$10$fx8FRk6FoZOZdPtjQP5QheodVYlk5LCMIZ.sM4Ia6tE8T09djLWFa';   // X-Master-Key z jsonbin.io
+const JSONBIN_BIN    = '6a2ef3abda38895dfebfbb64';      // ID bina z jsonbin.io
 const JSONBIN_URL    = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN;
 
 /* ═══════════════════════════════════════════════
