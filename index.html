@@ -211,6 +211,38 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
 .pf-btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--muted);font-family:'Courier New',monospace;font-size:13px;padding:7px 14px;cursor:pointer;}
 .pf-btn-cancel:hover{color:var(--white);border-color:var(--white);}
 .pf-hint{color:var(--muted);font-size:11px;margin-top:3px;}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.pf-grid .pf-row{margin-bottom:0;}
+.pf-sec{color:var(--amber);font-size:11px;letter-spacing:1px;margin:14px 0 10px;padding-top:12px;border-top:1px solid var(--border);}
+.pf-sec::before{content:'## ';color:var(--amber-dim);}
+.pf-radio-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
+.pf-rbtn{border:1px solid var(--border2);padding:3px 10px;font-size:12px;color:var(--green-dim);cursor:pointer;font-family:'Courier New',monospace;background:transparent;}
+.pf-rbtn:hover{border-color:var(--green);color:var(--green);}
+.pf-rbtn.active{background:var(--green);color:var(--bg);border-color:var(--green);}
+.pf-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.pf-toggle{width:34px;height:16px;background:var(--border);border:1px solid var(--border2);position:relative;cursor:pointer;flex-shrink:0;}
+.pf-toggle.on{background:var(--green-dark);border-color:var(--green-dim);}
+.pf-toggle::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;background:var(--muted);transition:left .15s;}
+.pf-toggle.on::after{left:20px;background:var(--green);}
+.pf-toggle-lbl{color:var(--green-dim);font-size:12px;cursor:pointer;}
+.pf-toggle-lbl.on{color:var(--green);}
+.pf-img-zone{background:var(--bg);border:1px dashed var(--border2);padding:14px;text-align:center;cursor:pointer;transition:border-color .15s;}
+.pf-img-zone:hover,.pf-img-zone.drag{border-color:var(--green);background:var(--green-bg);}
+.pf-img-zone-txt{color:var(--green-dim);font-size:12px;line-height:1.8;pointer-events:none;}
+.pf-img-zone-txt strong{color:var(--green);display:block;font-size:13px;margin-bottom:2px;}
+.pf-img-preview{width:100%;height:80px;object-fit:cover;border:1px solid var(--border2);margin-top:8px;display:none;}
+.pf-img-preview.show{display:block;}
+.pf-img-clear{display:none;background:transparent;border:1px solid var(--red-dim);color:var(--red-dim);font-family:'Courier New',monospace;font-size:11px;padding:2px 8px;cursor:pointer;margin-top:4px;}
+.pf-img-clear:hover{background:var(--red);color:#000;border-color:var(--red);}
+.pf-img-clear.show{display:inline-block;}
+.pf-mdbar{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px;}
+.pf-mdbtn{background:var(--bg3);border:1px solid var(--border);color:var(--green-dim);font-family:'Courier New',monospace;font-size:11px;padding:2px 7px;cursor:pointer;}
+.pf-mdbtn:hover{border-color:var(--border2);color:var(--green);}
+.pf-mdbtn.special{color:var(--cyan);border-color:var(--cyan-dim);}
+.pf-footer2{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.pf-footer2-hint{color:var(--muted);font-size:11px;}
+.pf-btn-draft{background:transparent;color:var(--amber);border:1px solid var(--amber-dim);font-family:'Courier New',monospace;font-size:13px;padding:7px 14px;cursor:pointer;}
+.pf-btn-draft:hover{background:var(--amber);color:var(--bg);}
 
 /* ═══════════════════════════════════════════
    DONUT EASTER EGG
@@ -269,46 +301,144 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
     <div class="pf-titlebar">
       <div style="display:flex;align-items:center;gap:8px;">
         <div class="win-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
-        <span class="pf-title-txt">nano nowy-post.md — admin@szuszjan</span>
+        <span class="pf-title-txt" id="pf-title-txt">nano nowy-post.md — admin@szuszjan</span>
       </div>
       <button class="pf-close" id="pf-close">✕</button>
     </div>
     <div class="pf-body">
+
+      <div class="pf-sec">META</div>
       <div class="pf-row">
         <label class="pf-label">TYTUŁ POSTA</label>
         <input class="pf-input" id="pf-title" type="text" placeholder="np. Własny protokół CAN na AVR od zera" />
       </div>
+
+      <div class="pf-grid" style="margin-bottom:14px;">
+        <div class="pf-row">
+          <label class="pf-label">KATEGORIA</label>
+          <select class="pf-select" id="pf-cat">
+            <option value="arduino">ARDUINO</option>
+            <option value="embedded">EMBEDDED</option>
+            <option value="m5stack">M5STACK</option>
+            <option value="linux">LINUX</option>
+            <option value="project">PROJEKT</option>
+          </select>
+        </div>
+        <div class="pf-row">
+          <label class="pf-label">POZIOM TRUDNOŚCI</label>
+          <div class="pf-radio-row" id="pf-diff-group">
+            <button class="pf-rbtn active" data-val="beginner">[B] Beginner</button>
+            <button class="pf-rbtn" data-val="intermediate">[I] Inter</button>
+            <button class="pf-rbtn" data-val="advanced">[A] Advanced</button>
+          </div>
+        </div>
+      </div>
+
       <div class="pf-row">
-        <label class="pf-label">KATEGORIA</label>
-        <select class="pf-select" id="pf-cat">
-          <option value="arduino">ARDUINO</option>
-          <option value="embedded">EMBEDDED</option>
-          <option value="m5stack">M5STACK</option>
-          <option value="linux">LINUX</option>
-          <option value="project">PROJEKT</option>
-        </select>
+        <label class="pf-label">ZAJAWKA (maks. 160 znaków) <span id="pf-excerpt-count" style="color:var(--muted);">0/160</span></label>
+        <input class="pf-input" id="pf-excerpt" type="text" maxlength="160" placeholder="Krótki opis co czytelnik znajdzie w poście..." />
       </div>
+
+      <div class="pf-grid" style="margin-bottom:14px;">
+        <div class="pf-row">
+          <label class="pf-label">TAGI (przecinkami)</label>
+          <input class="pf-input" id="pf-tags" type="text" placeholder="arduino, avr, uart" />
+        </div>
+        <div class="pf-row">
+          <label class="pf-label">CZAS CZYTANIA (min)</label>
+          <input class="pf-input" id="pf-time" type="number" value="5" min="1" max="60" style="width:80px;" />
+        </div>
+      </div>
+
+      <div class="pf-grid" style="margin-bottom:14px;">
+        <div class="pf-row">
+          <label class="pf-label">SLUG / URL</label>
+          <input class="pf-input" id="pf-slug" type="text" placeholder="wlasny-bootloader-avr" />
+          <div class="pf-hint"># /post/[slug] — zostaw puste = auto</div>
+        </div>
+        <div class="pf-row">
+          <label class="pf-label">LINK GITHUB / DEMO</label>
+          <input class="pf-input" id="pf-github" type="text" placeholder="https://github.com/szuszjan/..." />
+        </div>
+      </div>
+
+      <div class="pf-sec">ZDJĘCIA</div>
+
       <div class="pf-row">
-        <label class="pf-label">ZAJAWKA (skrót, maks. 160 znaków)</label>
-        <input class="pf-input" id="pf-excerpt" type="text" placeholder="Krótki opis co czytelnik znajdzie w poście..." />
+        <label class="pf-label">ZDJĘCIE OKŁADKI — wklej URL</label>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input class="pf-input" id="pf-cover-url" type="text" placeholder="https://i.imgur.com/abc.jpg" style="flex:1;" />
+          <button class="pf-mdbtn special" id="pf-cover-preview-btn" style="padding:6px 10px;font-size:12px;">[podgląd]</button>
+        </div>
+        <img class="pf-img-preview" id="pf-cover-preview" alt="podgląd okładki" />
+        <button class="pf-img-clear" id="pf-cover-clear">[x] usuń</button>
+        <div class="pf-hint"># Imgur: wrzuć na imgur.com i skopiuj link bezpośredni .jpg / GitHub Issues: drag & drop w komentarzu</div>
       </div>
+
+      <div class="pf-row" style="margin-top:10px;">
+        <label class="pf-label">ZDJĘCIA W TREŚCI — dodaj URL-e (każdy w nowej linii)</label>
+        <textarea class="pf-textarea" id="pf-gallery" style="min-height:60px;" placeholder="https://i.imgur.com/foto1.jpg&#10;https://i.imgur.com/foto2.jpg&#10;https://i.imgur.com/schemat.png"></textarea>
+        <div class="pf-hint"># Wstawiane w treści przez ![opis](url) — pasek narzędzi poniżej to ułatwia</div>
+      </div>
+
+      <div class="pf-sec">TREŚĆ POSTA</div>
+
       <div class="pf-row">
-        <label class="pf-label">TAGI (oddzielone przecinkami)</label>
-        <input class="pf-input" id="pf-tags" type="text" placeholder="np. arduino, can-bus, avr, embedded-c" />
+        <label class="pf-label">MARKDOWN — pasek narzędzi</label>
+        <div class="pf-mdbar">
+          <button class="pf-mdbtn" data-insert="**tekst**">B</button>
+          <button class="pf-mdbtn" data-insert="_tekst_"><i>I</i></button>
+          <button class="pf-mdbtn" data-insert="## Nagłówek">H2</button>
+          <button class="pf-mdbtn" data-insert="### Nagłówek">H3</button>
+          <button class="pf-mdbtn" data-insert="`kod`">`k`</button>
+          <button class="pf-mdbtn special" data-insert="```c&#10;// kod tutaj&#10;```">```c```</button>
+          <button class="pf-mdbtn" data-insert="&gt; cytat">&gt;cyt</button>
+          <button class="pf-mdbtn" data-insert="---">---</button>
+          <button class="pf-mdbtn" data-insert="- element listy">list</button>
+          <button class="pf-mdbtn special" id="pf-insert-img-btn">[img]</button>
+          <button class="pf-mdbtn special" data-insert="[tekst](https://)">[link]</button>
+        </div>
+        <textarea class="pf-textarea" id="pf-content" style="min-height:120px;" placeholder="## Wstęp&#10;&#10;Tu wpisz treść...&#10;&#10;```c&#10;void setup() { Serial.begin(115200); }&#10;```&#10;&#10;![opis zdjęcia](https://i.imgur.com/abc.jpg)"></textarea>
       </div>
-      <div class="pf-row">
-        <label class="pf-label">CZAS CZYTANIA (minuty)</label>
-        <input class="pf-input" id="pf-time" type="number" value="5" min="1" max="60" style="width:80px;" />
+
+      <div class="pf-sec">OPCJE PUBLIKACJI</div>
+
+      <div class="pf-grid" style="margin-bottom:0;">
+        <div class="pf-row">
+          <label class="pf-label">STATUS</label>
+          <div class="pf-radio-row" id="pf-status-group">
+            <button class="pf-rbtn" data-val="draft">[D] Szkic</button>
+            <button class="pf-rbtn active" data-val="published">[P] Opublikuj</button>
+          </div>
+        </div>
+        <div class="pf-row">
+          <label class="pf-label">OPCJE</label>
+          <div>
+            <div class="pf-toggle-row">
+              <div class="pf-toggle on" id="tog-featured"></div>
+              <span class="pf-toggle-lbl on" id="tog-featured-lbl">Wyróżniony (featured)</span>
+            </div>
+            <div class="pf-toggle-row">
+              <div class="pf-toggle on" id="tog-rss"></div>
+              <span class="pf-toggle-lbl on" id="tog-rss-lbl">Widoczny w RSS</span>
+            </div>
+            <div class="pf-toggle-row">
+              <div class="pf-toggle" id="tog-comments"></div>
+              <span class="pf-toggle-lbl" id="tog-comments-lbl">Komentarze wyłączone</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="pf-row">
-        <label class="pf-label">TREŚĆ POSTA (Markdown)</label>
-        <textarea class="pf-textarea" id="pf-content" placeholder="## Wstęp&#10;&#10;Tu wpisz treść posta w Markdown...&#10;&#10;```c&#10;void setup() { ... }&#10;```"></textarea>
-        <div class="pf-hint"># Obsługiwany Markdown: nagłówki ## / ### , **bold**, `kod`, ```blok kodu```, > cytat</div>
+
+      <div class="pf-footer2" style="margin-top:16px;">
+        <div class="pf-footer2-hint">Ctrl+S = zapisz &nbsp;·&nbsp; Esc = zamknij</div>
+        <div style="display:flex;gap:6px;">
+          <button class="pf-btn-cancel" id="pf-cancel">[ESC] Anuluj</button>
+          <button class="pf-btn-draft" id="pf-draft">[D] Szkic</button>
+          <button class="pf-btn-save" id="pf-save">[CTRL+S] Opublikuj</button>
+        </div>
       </div>
-      <div class="pf-footer">
-        <button class="pf-btn-cancel" id="pf-cancel">[ESC] Anuluj</button>
-        <button class="pf-btn-save" id="pf-save">[CTRL+S] Zapisz post</button>
-      </div>
+
     </div>
   </div>
 </div>
@@ -515,8 +645,8 @@ footer{border-top:1px solid var(--border);background:var(--bg2);}
    CONFIG — wypełnij po założeniu konta JSONBin.io
 ═══════════════════════════════════════════════ */
 const ADMIN_PASSWORD = 'admin123';       // zmień na swoje hasło!
-const JSONBIN_KEY    = '$2a$10$fx8FRk6FoZOZdPtjQP5QheodVYlk5LCMIZ.sM4Ia6tE8T09djLWFa';   // X-Master-Key z jsonbin.io
-const JSONBIN_BIN    = '6a2ef3abda38895dfebfbb64';      // ID bina z jsonbin.io
+const JSONBIN_KEY    = 'WKLEJ_SWOJ_KLUCZ_API';   // X-Master-Key z jsonbin.io
+const JSONBIN_BIN    = 'WKLEJ_SWOJ_BIN_ID';      // ID bina z jsonbin.io
 const JSONBIN_URL    = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN;
 
 /* ═══════════════════════════════════════════════
@@ -634,13 +764,19 @@ async function renderPosts(filter) {
   }
 
   container.innerHTML = filtered.map((p, i) => {
-    const isFirst = i === 0 && !currentFilter;
+    const isFirst = i === 0 && !currentFilter && p.status !== 'draft';
     const date = new Date(p.date).toISOString().split('T')[0];
-    return '<article class="post' + (isFirst ? ' featured' : '') + '" data-cat="' + p.cat + '">' +
+    const diffLabel = {beginner:'[B]',intermediate:'[I]',advanced:'[A]'}[p.diff] || '';
+    const diffColor = {beginner:'var(--green-dim)',intermediate:'var(--amber)',advanced:'var(--red)'}[p.diff] || 'var(--muted)';
+    const isDraft = p.status === 'draft';
+    return '<article class="post' + (isFirst ? ' featured' : '') + (isDraft ? '" style="opacity:.6;border-style:dashed' : '') + '" data-cat="' + p.cat + '">' +
+      (p.coverUrl ? '<img src="' + escHtml(p.coverUrl) + '" alt="okładka" style="width:100%;height:120px;object-fit:cover;display:block;border-bottom:1px solid var(--border);" loading="lazy" onerror="this.style.display=\'none\'">' : '') +
       '<div class="post-head">' +
         '<span class="post-num">[' + String(i+1).padStart(2,'0') + ']</span>' +
         '<span class="post-cat cat-' + p.cat + '">' + (CAT_LABELS[p.cat]||p.cat.toUpperCase()) + '</span>' +
+        (isDraft ? '<span style="color:var(--amber);font-size:11px;">[SZKIC]</span>' : '') +
         (isFirst ? '<span class="post-hot">[HOT]</span>' : '') +
+        (diffLabel ? '<span style="color:' + diffColor + ';font-size:11px;">' + diffLabel + '</span>' : '') +
         '<span class="post-date">' + date + '</span>' +
         '<button class="post-del-btn" onclick="deletePost(\'' + p.id + '\')">[rm]</button>' +
       '</div>' +
@@ -650,10 +786,13 @@ async function renderPosts(filter) {
       '</div>' +
       '<div class="post-foot">' +
         '<div class="post-meta-row">' +
-          '<span>' + (p.readTime||5) + ' min czytania</span>' +
+          '<span>' + (p.readTime||5) + ' min</span>' +
           (p.tags ? '<span>' + escHtml(p.tags) + '</span>' : '') +
         '</div>' +
-        '<div class="post-stats"><span>views: 0</span></div>' +
+        '<div class="post-stats">' +
+          (p.github ? '<a href="' + escHtml(p.github) + '" target="_blank" style="color:var(--cyan);font-size:11px;">[github]</a>' : '') +
+          '<span>views: 0</span>' +
+        '</div>' +
       '</div>' +
     '</article>';
   }).join('');
@@ -725,52 +864,168 @@ loginPass.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); 
 ═══════════════════════════════════════════════ */
 const postFormOverlay = document.getElementById('post-form-overlay');
 
-document.getElementById('add-post-btn').addEventListener('click', function() {
+function resetForm() {
   document.getElementById('pf-title').value = '';
   document.getElementById('pf-excerpt').value = '';
+  document.getElementById('pf-excerpt-count').textContent = '0/160';
   document.getElementById('pf-tags').value = '';
   document.getElementById('pf-time').value = '5';
   document.getElementById('pf-content').value = '';
+  document.getElementById('pf-slug').value = '';
+  document.getElementById('pf-github').value = '';
+  document.getElementById('pf-cover-url').value = '';
+  document.getElementById('pf-gallery').value = '';
+  document.getElementById('pf-cover-preview').classList.remove('show');
+  document.getElementById('pf-cover-clear').classList.remove('show');
+  document.getElementById('pf-title-txt').textContent = 'nano nowy-post.md — admin@szuszjan';
+  // reset radio groups
+  document.querySelectorAll('#pf-diff-group .pf-rbtn').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.querySelectorAll('#pf-status-group .pf-rbtn').forEach((b,i) => b.classList.toggle('active', i===1));
+  // reset toggles
+  [['tog-featured',true],['tog-rss',true],['tog-comments',false]].forEach(([id,on]) => {
+    const t = document.getElementById(id);
+    const l = document.getElementById(id+'-lbl');
+    t.classList.toggle('on', on);
+    l.classList.toggle('on', on);
+  });
+}
+
+document.getElementById('add-post-btn').addEventListener('click', function() {
+  resetForm();
   postFormOverlay.classList.add('show');
   setTimeout(() => document.getElementById('pf-title').focus(), 80);
 });
 
 function closePostForm() { postFormOverlay.classList.remove('show'); }
-
 document.getElementById('pf-close').addEventListener('click', closePostForm);
 document.getElementById('pf-cancel').addEventListener('click', closePostForm);
 
-document.getElementById('pf-save').addEventListener('click', async function() {
+/* ── tytuł → slug auto-generuj ── */
+document.getElementById('pf-title').addEventListener('input', function() {
+  const slug = document.getElementById('pf-slug');
+  if (!slug.dataset.manual) {
+    slug.value = this.value.toLowerCase()
+      .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l')
+      .replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  }
+  document.getElementById('pf-title-txt').textContent = 'nano ' + (this.value||'nowy-post') + '.md';
+});
+document.getElementById('pf-slug').addEventListener('input', function() {
+  this.dataset.manual = this.value ? '1' : '';
+});
+
+/* ── licznik znaków zajawki ── */
+document.getElementById('pf-excerpt').addEventListener('input', function() {
+  document.getElementById('pf-excerpt-count').textContent = this.value.length + '/160';
+});
+
+/* ── radio groups ── */
+document.querySelectorAll('#pf-diff-group .pf-rbtn, #pf-status-group .pf-rbtn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    this.closest('.pf-radio-row').querySelectorAll('.pf-rbtn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+/* ── toggle switches ── */
+[['tog-featured'],['tog-rss'],['tog-comments']].forEach(([id]) => {
+  const t = document.getElementById(id);
+  const l = document.getElementById(id+'-lbl');
+  t.addEventListener('click', () => {
+    t.classList.toggle('on');
+    l.classList.toggle('on');
+  });
+});
+
+/* ── podgląd okładki ── */
+document.getElementById('pf-cover-preview-btn').addEventListener('click', function() {
+  const url = document.getElementById('pf-cover-url').value.trim();
+  if (!url) return;
+  const img = document.getElementById('pf-cover-preview');
+  img.src = url;
+  img.classList.add('show');
+  document.getElementById('pf-cover-clear').classList.add('show');
+});
+document.getElementById('pf-cover-url').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('pf-cover-preview-btn').click();
+});
+document.getElementById('pf-cover-clear').addEventListener('click', function() {
+  document.getElementById('pf-cover-url').value = '';
+  document.getElementById('pf-cover-preview').classList.remove('show');
+  this.classList.remove('show');
+});
+
+/* ── pasek narzędzi Markdown ── */
+document.querySelectorAll('.pf-mdbtn[data-insert]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const ta = document.getElementById('pf-content');
+    const ins = this.dataset.insert.replace(/&#10;/g, '\n');
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const sel = ta.value.substring(start, end);
+    const replacement = sel ? ins.replace('tekst', sel).replace('kod', sel).replace('Nagłówek', sel) : ins;
+    ta.value = ta.value.substring(0, start) + replacement + ta.value.substring(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + replacement.length;
+  });
+});
+
+/* ── przycisk wstaw zdjęcie z galerii do treści ── */
+document.getElementById('pf-insert-img-btn').addEventListener('click', function() {
+  const urls = document.getElementById('pf-gallery').value.trim().split('\n').filter(u => u.trim());
+  if (!urls.length) { alert('Najpierw dodaj URL-e zdjęć w polu "Zdjęcia w treści" powyżej.'); return; }
+  const ta = document.getElementById('pf-content');
+  const ins = urls.map(u => '![zdjęcie](' + u.trim() + ')').join('\n');
+  const pos = ta.selectionStart;
+  ta.value = ta.value.substring(0, pos) + '\n' + ins + '\n' + ta.value.substring(pos);
+  ta.focus();
+});
+
+/* ── zbierz dane i zapisz ── */
+async function savePost(asDraft) {
   const title   = document.getElementById('pf-title').value.trim();
   const cat     = document.getElementById('pf-cat').value;
   const excerpt = document.getElementById('pf-excerpt').value.trim();
   const tags    = document.getElementById('pf-tags').value.trim();
   const readTime= parseInt(document.getElementById('pf-time').value) || 5;
   const content = document.getElementById('pf-content').value;
+  const slug    = document.getElementById('pf-slug').value.trim() || ('post-' + Date.now());
+  const github  = document.getElementById('pf-github').value.trim();
+  const coverUrl= document.getElementById('pf-cover-url').value.trim();
+  const diff    = document.querySelector('#pf-diff-group .pf-rbtn.active')?.dataset.val || 'beginner';
+  const status  = asDraft ? 'draft' : (document.querySelector('#pf-status-group .pf-rbtn.active')?.dataset.val || 'published');
+  const featured= document.getElementById('tog-featured').classList.contains('on');
+  const rss     = document.getElementById('tog-rss').classList.contains('on');
 
-  if (!title) { alert('Podaj tytuł posta!'); return; }
+  if (!title)   { alert('Podaj tytuł posta!'); return; }
   if (!excerpt) { alert('Podaj zajawkę!'); return; }
 
-  const btn = this;
+  const btn = asDraft ? document.getElementById('pf-draft') : document.getElementById('pf-save');
+  const origTxt = btn.textContent;
   btn.textContent = '[ zapisywanie... ]';
   btn.disabled = true;
 
   const post = {
     id: 'post-' + Date.now(),
     title, cat, excerpt, tags, readTime, content,
+    slug, github, coverUrl, diff, status, featured, rss,
     date: new Date().toISOString(),
     views: 0
   };
+
   try {
     await addPost(post);
     closePostForm();
   } catch(e) {
     alert('Błąd zapisu do JSONBin! Sprawdź klucz API i BIN ID.');
   } finally {
-    btn.textContent = '[CTRL+S] Zapisz post';
+    btn.textContent = origTxt;
     btn.disabled = false;
   }
-});
+}
+
+document.getElementById('pf-save').addEventListener('click', () => savePost(false));
+document.getElementById('pf-draft').addEventListener('click', () => savePost(true));
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
