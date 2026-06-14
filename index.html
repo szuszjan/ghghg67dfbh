@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Szuszjan — elektronika, embedded, linux</title>
+<meta name="description" content="Blog o Arduino, embedded, M5Stack i Linuksie. Budujemy rzeczy z niczego.">
+<style>
+:root {
+  --green:#33ff33; --green-dim:#1a7a1a; --green-mid:#2a9a2a;
+  --green-dark:#0d3d0d; --green-bg:#0e1f0e;
+  --amber:#ffaa00; --amber-dim:#7a5000;
+  --cyan:#00cccc; --cyan-dim:#006666;
+  --white:#cccccc; --muted:#444444;
+  --bg:#0a0a0a; --bg2:#0d0d0d; --bg3:#111111;
+  --border:#1a3a1a; --border2:#2a5a2a;
+  --red:#ff4444; --red-dim:#7a1a1a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#050505;color:var(--green);font-family:'Courier New',Courier,monospace;font-size:14px;line-height:1.5;min-height:100vh;}
+a{color:var(--cyan);text-decoration:none;}
+a:hover{color:var(--green);text-decoration:underline;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:9000;}
+.page{max-width:960px;margin:0 auto;padding:0 16px;}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 0;position:sticky;top:0;z-index:500;}
+.topbar-inner{max-width:960px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.win-dots{display:flex;gap:5px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.dot-r{background:#ff5f57;} .dot-y{background:#febc2e;} .dot-g{background:#28c840;}
+.session-info{color:var(--muted);font-size:12px;}
+nav{display:flex;align-items:center;gap:2px;flex-wrap:wrap;}
+.nav-sep{color:var(--border2);margin:0 2px;}
+nav a{color:var(--green-dim);padding:2px 8px;font-size:13px;border:1px solid transparent;}
+nav a:hover{color:var(--green);border-color:var(--border2);text-decoration:none;}
+nav a.active{color:var(--bg);background:var(--green);border-color:var(--green);}
+.admin-btn{color:var(--amber);border:1px solid var(--amber-dim);padding:2px 8px;font-size:13px;cursor:pointer;background:transparent;font-family:'Courier New',monospace;}
+.admin-btn:hover{background:var(--amber);color:var(--bg);}
+.admin-indicator{color:var(--amber);font-size:12px;display:none;}
+
+/* HERO */
+.hero{background:var(--bg);border-bottom:1px solid var(--border);padding:28px 0 20px;overflow:hidden;}
+.hero-inner{max-width:960px;margin:0 auto;padding:0 16px;}
+.ascii-logo{white-space:pre;font-size:11px;line-height:1.15;color:var(--green);overflow-x:auto;display:block;margin-bottom:6px;}
+.ascii-logo .dim{color:var(--green-dim);} .ascii-logo .mid{color:var(--green-mid);} .ascii-logo .hi{color:#66ff66;}
+.tagline{color:var(--green-dim);font-size:12px;letter-spacing:2px;margin-bottom:14px;}
+.tagline span{color:var(--amber);}
+.hero-cmd{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin-top:10px;}
+.hero-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.htag{font-size:12px;padding:2px 8px;border:1px solid var(--border2);color:var(--green-dim);cursor:pointer;}
+.htag:hover{background:var(--green-bg);color:var(--green);}
+.htag.active{background:var(--green);color:var(--bg);border-color:var(--green);}
+.div-line{color:var(--border2);white-space:pre;overflow:hidden;font-size:13px;line-height:1;margin:0;display:block;}
+
+/* LAYOUT */
+.content{padding:20px 0 40px;}
+.grid{display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start;}
+@media(max-width:720px){.grid{grid-template-columns:1fr;}.sidebar{order:-1;}}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sec-hdr .prompt{color:var(--cyan);font-size:13px;white-space:nowrap;}
+.sec-hdr .cmd{color:var(--white);font-size:13px;}
+
+/* POSTS */
+.post{border:1px solid var(--border);margin-bottom:12px;background:var(--bg2);transition:border-color .15s;}
+.post:hover{border-color:var(--border2);}
+.post.featured{border-color:var(--green-dim);}
+.post.featured:hover{border-color:var(--green);}
+.post-head{background:var(--bg3);padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.post-num{color:var(--green-dim);font-size:12px;}
+.post-cat{font-size:11px;padding:1px 7px;border:1px solid;text-transform:uppercase;letter-spacing:.5px;}
+.cat-arduino{color:#33ff33;border-color:#1a5a1a;background:#0a1a0a;}
+.cat-embedded{color:#ffaa00;border-color:#5a3a00;background:#1a0f00;}
+.cat-m5stack{color:#00cccc;border-color:#005a5a;background:#001a1a;}
+.cat-linux{color:#cc88ff;border-color:#4a2a7a;background:#120a1a;}
+.cat-project{color:#ff6666;border-color:#7a2222;background:#1a0808;}
+.post-date{color:var(--muted);font-size:12px;margin-left:auto;}
+.post-hot{color:var(--amber);font-size:11px;animation:flicker 2s step-end infinite;}
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:0}96%{opacity:1}97%{opacity:0}99%{opacity:1}}
+.post-body{padding:10px 12px;}
+.post-title{color:#88ff88;font-size:14px;font-weight:bold;margin-bottom:5px;line-height:1.3;}
+.post-title a{color:inherit;}
+.post-title a:hover{color:var(--green);text-decoration:none;}
+.post-excerpt{color:var(--green-dim);font-size:12px;line-height:1.6;margin-bottom:8px;}
+.post-excerpt::before{content:'> ';color:var(--border2);}
+.post-foot{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;border-top:1px solid var(--border);background:var(--bg3);}
+.post-meta-row{color:var(--muted);font-size:11px;display:flex;gap:12px;flex-wrap:wrap;}
+.post-meta-row span::before{content:'# ';color:var(--border2);}
+.post-stats{color:var(--green-dim);font-size:11px;display:flex;gap:10px;}
+.post-del-btn{background:transparent;border:1px solid var(--red-dim);color:var(--red-dim);font-family:'Courier New',monospace;font-size:11px;padding:1px 7px;cursor:pointer;display:none;}
+.post-del-btn:hover{background:var(--red);color:#000;border-color:var(--red);}
+.admin-mode .post-del-btn{display:inline-block;}
+
+/* EMPTY STATE */
+.empty-state{border:1px dashed var(--border2);padding:30px 20px;text-align:center;color:var(--green-dim);margin-bottom:12px;}
+.empty-state .es-title{color:var(--green);font-size:15px;margin-bottom:8px;}
+.empty-state .es-sub{font-size:12px;line-height:1.7;}
+
+/* ADD POST BUTTON */
+.add-post-btn{display:none;width:100%;border:1px dashed var(--border2);background:transparent;color:var(--green-dim);font-family:'Courier New',monospace;font-size:13px;padding:10px;cursor:pointer;margin-bottom:12px;text-align:left;}
+.add-post-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-bg);}
+.admin-mode .add-post-btn{display:block;}
+
+/* SIDEBAR */
+.widget{border:1px solid var(--border);margin-bottom:16px;background:var(--bg2);}
+.widget-hdr{background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 12px;color:var(--amber);font-size:12px;letter-spacing:1px;}
+.widget-hdr::before{content:'## ';color:var(--amber-dim);}
+.widget-body{padding:10px 12px;}
+.pop-list{list-style:none;}
+.pop-list li{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.pop-list li:last-child{border-bottom:none;}
+.pop-n{color:var(--green-mid);font-size:12px;min-width:20px;}
+.pop-t{font-size:12px;color:var(--green-dim);line-height:1.4;}
+.pop-t a{color:var(--green-dim);}
+.pop-t a:hover{color:var(--green);}
+.pop-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.tag-cloud{display:flex;flex-wrap:wrap;gap:5px;}
+.tc-tag{font-size:11px;padding:2px 7px;border:1px solid var(--border);color:var(--green-dim);cursor:pointer;}
+.tc-tag:hover{border-color:var(--green-mid);color:var(--green);}
+.bar-row{margin-bottom:7px;}
+.bar-lbl{color:var(--muted);font-size:11px;display:flex;justify-content:space-between;margin-bottom:2px;}
+.bar-lbl span{color:var(--amber);}
+.bar-track{background:var(--border);height:6px;position:relative;}
+.bar-fill{height:100%;background:var(--green-dim);}
+.nl-form{display:flex;flex-direction:column;gap:6px;}
+.nl-desc{color:var(--green-dim);font-size:11px;margin-bottom:4px;line-height:1.5;}
+.nl-desc::before{content:'# ';color:var(--border2);}
+.nl-input-row{display:flex;gap:0;}
+.nl-prompt{color:var(--cyan);font-size:12px;padding:5px 6px;background:var(--bg3);border:1px solid var(--border2);border-right:none;white-space:nowrap;}
+.nl-input{flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--green);font-family:'Courier New',monospace;font-size:12px;padding:5px 8px;outline:none;min-width:0;}
+.nl-input:focus{border-color:var(--green);}
+.nl-input::placeholder{color:var(--muted);}
+.nl-btn{background:var(--green);color:var(--bg);border:1px solid var(--green);font-family:'Courier New',monospace;font-size:12px;font-weight:bold;padding:5px 10px;cursor:pointer;white-space:nowrap;}
+.nl-btn:hover{background:#55ff55;}
+.uptime-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border);color:var(--muted);}
+.uptime-row:last-child{border:none;}
+.uptime-row .val{color:var(--green-mid);}
+.term-banner{background:var(--bg3);border:1px solid var(--border);padding:8px 14px;margin-bottom:12px;font-size:12px;}
+.tb-line{color:var(--muted);}
+.cur{display:inline-block;width:8px;height:14px;background:var(--green);vertical-align:text-bottom;animation:blink 1s step-end infinite;margin-left:1px;}
+@keyframes blink{50%{opacity:0}}
+.spacer{height:16px;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);background:var(--bg2);}
+.footer-status{background:var(--green);color:var(--bg);padding:3px 16px;font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.footer-body{max-width:960px;margin:0 auto;padding:14px 16px;display:flex;gap:24px;flex-wrap:wrap;justify-content:space-between;}
+.footer-col{font-size:12px;}
+.footer-col-hdr{color:var(--amber);margin-bottom:6px;}
+.footer-col-hdr::before{content:'## ';color:var(--amber-dim);}
+.footer-col a{color:var(--green-dim);display:block;margin-bottom:3px;}
+.footer-col a:hover{color:var(--green);text-decoration:none;}
+.footer-copy{text-align:center;color:var(--muted);font-size:11px;padding:10px 16px 14px;}
+
+/* ═══════════════════════════════════════════
+   LOGIN OVERLAY (CLI style)
+═══════════════════════════════════════════ */
+#login-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);
+  z-index:8000;align-items:center;justify-content:center;
+}
+#login-overlay.show{display:flex;}
+.login-box{width:480px;max-width:95vw;border:1px solid var(--border2);background:var(--bg2);}
+.login-titlebar{background:var(--bg3);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:8px;}
+.login-body{padding:20px 24px 24px;}
+.login-line{font-size:13px;color:var(--green-dim);margin-bottom:4px;line-height:1.6;}
+.login-line.hi{color:var(--green);}
+.login-line.warn{color:var(--amber);}
+.login-line.err{color:var(--red);}
+.login-spacer{height:12px;}
+.login-input-row{display:flex;align-items:center;gap:0;margin-top:4px;}
+.login-ps1{color:var(--cyan);font-size:13px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border2);border-right:none;white-space:nowrap;}
+.login-field{flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--green);font-family:'Courier New',monospace;font-size:13px;padding:6px 10px;outline:none;}
+.login-field:focus{border-color:var(--green);}
+.login-field::placeholder{color:var(--muted);}
+.login-submit{background:var(--green);color:var(--bg);border:none;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;padding:6px 14px;cursor:pointer;border:1px solid var(--green);}
+.login-submit:hover{background:#55ff55;}
+.login-cancel{background:transparent;color:var(--muted);border:1px solid var(--muted);font-family:'Courier New',monospace;font-size:13px;padding:6px 14px;cursor:pointer;margin-left:8px;}
+.login-cancel:hover{color:var(--white);border-color:var(--white);}
+.login-attempts{color:var(--red);font-size:12px;margin-top:8px;min-height:18px;}
+
+/* ═══════════════════════════════════════════
+   NEW POST FORM (CLI style)
+═══════════════════════════════════════════ */
+#post-form-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);
+  z-index:8000;align-items:center;justify-content:center;overflow-y:auto;padding:20px;
+}
+#post-form-overlay.show{display:flex;}
+.post-form-box{width:640px;max-width:95vw;border:1px solid var(--border2);background:var(--bg2);}
+.pf-titlebar{background:var(--bg3);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;}
+.pf-title-txt{color:var(--amber);font-size:13px;}
+.pf-close{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;font-family:'Courier New',monospace;padding:0 4px;}
+.pf-close:hover{color:var(--red);}
+.pf-body{padding:20px 24px;}
+.pf-row{margin-bottom:14px;}
+.pf-label{color:var(--green-dim);font-size:12px;margin-bottom:4px;display:block;}
+.pf-label::before{content:'> ';color:var(--border2);}
+.pf-input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--green);font-family:'Courier New',monospace;font-size:13px;padding:6px 10px;outline:none;}
+.pf-input:focus{border-color:var(--green);}
+.pf-input::placeholder{color:var(--muted);}
+.pf-select{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--green);font-family:'Courier New',monospace;font-size:13px;padding:6px 10px;outline:none;cursor:pointer;}
+.pf-select option{background:var(--bg2);}
+.pf-textarea{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--green);font-family:'Courier New',monospace;font-size:12px;padding:8px 10px;outline:none;min-height:100px;resize:vertical;line-height:1.6;}
+.pf-textarea:focus{border-color:var(--green);}
+.pf-textarea::placeholder{color:var(--muted);}
+.pf-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.pf-btn-save{background:var(--green);color:var(--bg);border:1px solid var(--green);font-family:'Courier New',monospace;font-size:13px;font-weight:bold;padding:7px 18px;cursor:pointer;}
+.pf-btn-save:hover{background:#55ff55;}
+.pf-btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--muted);font-family:'Courier New',monospace;font-size:13px;padding:7px 14px;cursor:pointer;}
+.pf-btn-cancel:hover{color:var(--white);border-color:var(--white);}
+.pf-hint{color:var(--muted);font-size:11px;margin-top:3px;}
+
+/* ═══════════════════════════════════════════
+   DONUT EASTER EGG
+═══════════════════════════════════════════ */
+#donut-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);
+  z-index:9500;align-items:center;justify-content:center;flex-direction:column;
+}
+#donut-overlay.show{display:flex;}
+#donut-canvas{
+  white-space:pre;font-family:'Courier New',monospace;font-size:12px;line-height:1.1;
+  color:var(--green);letter-spacing:2px;
+  text-shadow:0 0 8px #33ff33;
+}
+.donut-hint{color:var(--green-dim);font-size:12px;margin-top:20px;}
+.donut-title{color:var(--amber);font-size:12px;margin-bottom:12px;letter-spacing:2px;}
+
+/* KONAMI hint hidden */
+.konami-hint{position:fixed;bottom:14px;right:16px;color:#1a3a1a;font-size:10px;z-index:100;user-select:none;}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN OVERLAY ═══ -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-titlebar">
+      <div class="win-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span style="color:var(--muted);font-size:12px;margin-left:8px;">szuszjan@blog — su admin</span>
+    </div>
+    <div class="login-body">
+      <div class="login-line hi">Szuszjan Blog Admin Panel v1.0</div>
+      <div class="login-line">════════════════════════════════════</div>
+      <div class="login-spacer"></div>
+      <div class="login-line">Aby kontynuować, zaloguj się jako administrator.</div>
+      <div class="login-line warn">Unauthorized access will be logged and reported.</div>
+      <div class="login-spacer"></div>
+      <div class="login-line">login: <span style="color:var(--green)">admin</span></div>
+      <div class="login-spacer"></div>
+      <div style="display:flex;align-items:center;gap:0;margin-top:4px;">
+        <span class="login-ps1">Password: </span>
+        <input class="login-field" id="login-pass" type="password" placeholder="••••••••" autocomplete="off" />
+        <button class="login-submit" id="login-btn">[ENTER]</button>
+        <button class="login-cancel" id="login-cancel">[ESC]</button>
+      </div>
+      <div class="login-attempts" id="login-msg"></div>
+      <div class="login-spacer"></div>
+      <div class="login-line" style="color:var(--border2);font-size:11px;"># Hasło domyślne: admin123 — zmień je w pliku config.js</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NEW POST FORM ═══ -->
+<div id="post-form-overlay">
+  <div class="post-form-box">
+    <div class="pf-titlebar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="win-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <span class="pf-title-txt">nano nowy-post.md — admin@szuszjan</span>
+      </div>
+      <button class="pf-close" id="pf-close">✕</button>
+    </div>
+    <div class="pf-body">
+      <div class="pf-row">
+        <label class="pf-label">TYTUŁ POSTA</label>
+        <input class="pf-input" id="pf-title" type="text" placeholder="np. Własny protokół CAN na AVR od zera" />
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">KATEGORIA</label>
+        <select class="pf-select" id="pf-cat">
+          <option value="arduino">ARDUINO</option>
+          <option value="embedded">EMBEDDED</option>
+          <option value="m5stack">M5STACK</option>
+          <option value="linux">LINUX</option>
+          <option value="project">PROJEKT</option>
+        </select>
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">ZAJAWKA (skrót, maks. 160 znaków)</label>
+        <input class="pf-input" id="pf-excerpt" type="text" placeholder="Krótki opis co czytelnik znajdzie w poście..." />
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">TAGI (oddzielone przecinkami)</label>
+        <input class="pf-input" id="pf-tags" type="text" placeholder="np. arduino, can-bus, avr, embedded-c" />
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">CZAS CZYTANIA (minuty)</label>
+        <input class="pf-input" id="pf-time" type="number" value="5" min="1" max="60" style="width:80px;" />
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">TREŚĆ POSTA (Markdown)</label>
+        <textarea class="pf-textarea" id="pf-content" placeholder="## Wstęp&#10;&#10;Tu wpisz treść posta w Markdown...&#10;&#10;```c&#10;void setup() { ... }&#10;```"></textarea>
+        <div class="pf-hint"># Obsługiwany Markdown: nagłówki ## / ### , **bold**, `kod`, ```blok kodu```, > cytat</div>
+      </div>
+      <div class="pf-footer">
+        <button class="pf-btn-cancel" id="pf-cancel">[ESC] Anuluj</button>
+        <button class="pf-btn-save" id="pf-save">[CTRL+S] Zapisz post</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DONUT EASTER EGG ═══ -->
+<div id="donut-overlay">
+  <div class="donut-title">★ EASTER EGG — donut.c by Andy Sloane (2006) ★</div>
+  <pre id="donut-canvas"></pre>
+  <div class="donut-hint">[ESC] lub [ENTER] aby wyjść ◆ kod: github.com/a1k0n/donutjs</div>
+</div>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-left">
+      <div class="win-dots">
+        <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      </div>
+      <span class="session-info" id="session-txt">szuszjan@blog:~ — bash — 120×40</span>
+      <span class="admin-indicator" id="admin-indicator">[ADMIN MODE]</span>
+    </div>
+    <nav>
+      <a href="#" class="active">[home]</a>
+      <span class="nav-sep">|</span>
+      <a href="#">[arduino]</a>
+      <span class="nav-sep">|</span>
+      <a href="#">[embedded]</a>
+      <span class="nav-sep">|</span>
+      <a href="#">[m5stack]</a>
+      <span class="nav-sep">|</span>
+      <a href="#">[linux]</a>
+      <span class="nav-sep">|</span>
+      <a href="#">[projekty]</a>
+      <span class="nav-sep">|</span>
+      <a href="#">[rss]</a>
+      <span class="nav-sep">|</span>
+      <button class="admin-btn" id="admin-toggle-btn">su admin</button>
+    </nav>
+  </div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-inner">
+<pre class="ascii-logo"><span class="dim">________</span><span class="hi">                        </span><span class="dim">________               </span>
+<span class="dim">__  ___/</span><span class="mid">_________  ___________</span><span class="hi">_____</span><span class="dim">(_)</span><span class="hi">_____ _______</span>
+<span class="dim">_____ \</span><span class="mid">___  /_  / / /_  ___/</span><span class="hi">__  /</span><span class="dim">____  /</span><span class="hi">_  __ `/_  __ \</span>
+<span class="mid">____/ /</span><span class="dim">__  /_</span><span class="hi">/ /_/ /_(__  )</span><span class="mid">__  /</span><span class="hi">____  / </span><span class="mid">/ /_/ /_  / / /</span>
+<span class="hi">/____/ </span><span class="mid">_____/\__,_/ /____/ </span><span class="dim">_____/</span><span class="hi">__  /  \__,_/ /_/ /_/</span>
+<span class="dim">                                /___/</span>                  </pre>
+    <div class="tagline">
+      # elektronika / embedded / arduino / linux / m5stack &nbsp;|&nbsp;
+      <span>build · flash · hack · repeat</span>
+    </div>
+    <div class="hero-cmd">
+      <span style="color:var(--cyan)">szuszjan@blog:~$</span>
+      <span style="color:var(--white)">cat README.md</span>
+    </div>
+    <div style="color:var(--green-dim);font-size:12px;margin-top:6px;padding-left:20px;line-height:1.7;">
+      Blog o majsterkowaniu od środka. Tłumaczę jak rzeczy działają,<br>
+      nie tylko jak je skopiować. Oscyloskop, kod C, kernel — bez tajemnic.
+    </div>
+    <div class="hero-tags" style="margin-top:12px;">
+      <span class="htag active">#wszystkie</span>
+      <span class="htag" data-filter="arduino">#arduino</span>
+      <span class="htag" data-filter="embedded">#embedded</span>
+      <span class="htag" data-filter="linux">#linux</span>
+      <span class="htag" data-filter="m5stack">#m5stack</span>
+      <span class="htag" data-filter="project">#projekty</span>
+    </div>
+  </div>
+</div>
+
+<span class="div-line">================================================================================================================================================</span>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="page content">
+  <div class="grid">
+    <main>
+      <div class="sec-hdr">
+        <span class="prompt" id="main-prompt">szuszjan@blog:~$</span>
+        <span class="cmd">cat posty.md | sort -r</span>
+      </div>
+
+      <!-- ADD POST BUTTON (admin only) -->
+      <button class="add-post-btn" id="add-post-btn">
+        [+] ./new-post.sh — dodaj nowy post
+      </button>
+
+      <!-- POSTS CONTAINER -->
+      <div id="posts-container"></div>
+
+      <div class="spacer"></div>
+
+      <!-- PROJECTS SECTION -->
+      <div class="sec-hdr" style="margin-top:8px;">
+        <span class="prompt">szuszjan@blog:~/projekty$</span>
+        <span class="cmd">ls -la --color=always</span>
+      </div>
+      <div class="term-banner">
+        <div class="tb-line"><span style="color:var(--green-dim)">drwxr-xr-x  szuszjan</span>  <span style="color:var(--cyan)">./projekty/</span></div>
+        <div class="tb-line"><span style="color:var(--green-dim)">-rwxr-xr-x  szuszjan</span>  <a href="#" style="color:#88ff88">termometr-iot-esp32-influxdb-grafana/</a>  <span style="color:var(--muted)">2025-05-28</span></div>
+        <div class="tb-line"><span style="color:var(--green-dim)">-rwxr-xr-x  szuszjan</span>  <a href="#" style="color:#88ff88">bootloader-avr-200-linii-c/</a>  <span style="color:var(--muted)">2025-04-15</span></div>
+        <div class="tb-line"><span style="color:var(--green-dim)">-rwxr-xr-x  szuszjan</span>  <a href="#" style="color:#88ff88">m5stack-pilot-ir-klimatyzator/</a>  <span style="color:var(--muted)">2025-03-22</span></div>
+        <div class="tb-line"><span style="color:var(--green-dim)">-rwxr-xr-x  szuszjan</span>  <a href="#" style="color:#88ff88">rpi-zero-usb-gadget-keyboard-ethernet/</a>  <span style="color:var(--muted)">2025-02-10</span></div>
+        <div class="tb-line"><span style="color:var(--amber)">-rwxr-xr-x  szuszjan</span>  <a href="#" style="color:var(--amber)">WIP_canbus-logger-stm32/</a>  <span style="color:var(--muted)">2025-06-10 [w trakcie]</span></div>
+        <div class="tb-line" style="margin-top:6px;color:var(--muted)">5 projektów, 1 WIP &nbsp;|&nbsp; <a href="#">github.com/szuszjan</a></div>
+      </div>
+    </main>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="widget">
+        <div class="widget-hdr">STAT --all</div>
+        <div class="widget-body">
+          <div class="bar-row"><div class="bar-lbl">Arduino <span>82%</span></div><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">Embedded <span>68%</span></div><div class="bar-track"><div class="bar-fill" style="width:68%"></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">Linux <span>54%</span></div><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">M5Stack <span>38%</span></div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div></div>
+          <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;">
+            <div><div style="color:#66ff66;font-size:18px;font-weight:bold;" id="stat-posts">0</div><div style="color:var(--muted);font-size:11px;">postów</div></div>
+            <div><div style="color:#66ff66;font-size:18px;font-weight:bold;">0</div><div style="color:var(--muted);font-size:11px;">czytelników</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-hdr">TAGI</div>
+        <div class="widget-body">
+          <div class="tag-cloud">
+            <span class="tc-tag">#arduino</span><span class="tc-tag">#esp32</span>
+            <span class="tc-tag">#freertos</span><span class="tc-tag">#linux</span>
+            <span class="tc-tag">#m5stack</span><span class="tc-tag">#i2c</span>
+            <span class="tc-tag">#spi</span><span class="tc-tag">#uart</span>
+            <span class="tc-tag">#mqtt</span><span class="tc-tag">#pcb</span>
+            <span class="tc-tag">#bash</span><span class="tc-tag">#kicad</span>
+            <span class="tc-tag">#stm32</span><span class="tc-tag">#rtos</span>
+            <span class="tc-tag">#avr</span><span class="tc-tag">#grafana</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-hdr">NEWSLETTER</div>
+        <div class="widget-body">
+          <div class="nl-form">
+            <div class="nl-desc">Nowy post co tydzień. Zero spamu, tylko elektronika.</div>
+            <div class="nl-input-row">
+              <span class="nl-prompt">$&gt;&nbsp;</span>
+              <input class="nl-input" id="nl-email" type="email" placeholder="email@domena.pl" />
+            </div>
+            <button class="nl-btn" id="nl-btn">[ENTER] zapisz się</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-hdr">./uptime.sh</div>
+        <div class="widget-body">
+          <div class="uptime-row"><span>host</span><span class="val">github-pages</span></div>
+          <div class="uptime-row"><span>uptime</span><span class="val">99.98%</span></div>
+          <div class="uptime-row"><span>build</span><span class="val">static html</span></div>
+          <div class="uptime-row"><span>version</span><span class="val">v3.0.0</span></div>
+          <div class="uptime-row"><span>easter egg</span><span class="val" style="color:var(--amber)">↑↑↓↓←→←→BA</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-status">
+    <span>szuszjan@blog — zbudowane z pasji i lutownicy</span>
+    <span>[q]uit &nbsp; [/]search &nbsp; [n]ext &nbsp; [p]rev &nbsp; [r]ss &nbsp; [?]help</span>
+  </div>
+  <div class="footer-body">
+    <div class="footer-col">
+      <div class="footer-col-hdr">nawigacja</div>
+      <a href="#">home</a><a href="#">arduino</a><a href="#">embedded</a>
+      <a href="#">m5stack</a><a href="#">linux</a><a href="#">projekty</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-hdr">zasoby</div>
+      <a href="#">rss feed</a><a href="#">github</a>
+      <a href="#">newsletter</a><a href="#">o blogu</a><a href="#">kontakt</a>
+    </div>
+    <div class="footer-col" style="max-width:260px;">
+      <div class="footer-col-hdr">o szuszjanie</div>
+      <div style="color:var(--green-dim);line-height:1.6;">
+        Majsterkowicz, programista, elektronik.<br>
+        Buduję rzeczy żeby zrozumieć jak działają.<br>
+        Oscyloskop, lutownica, terminal — moje narzędzia.
+      </div>
+    </div>
+  </div>
+  <div class="footer-copy">© 2025 Szuszjan &nbsp;|&nbsp; MIT License &nbsp;|&nbsp; made with ♥ and solder</div>
+</footer>
+
+<div class="konami-hint">↑↑↓↓←→←→BA</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════ */
+const ADMIN_PASSWORD = 'admin123'; // zmień to hasło!
+const STORAGE_KEY = 'szuszjan_posts';
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let isAdmin = false;
+let loginAttempts = 0;
+let currentFilter = null;
+
+/* ═══════════════════════════════════════════════
+   POSTS — localStorage
+═══════════════════════════════════════════════ */
+function loadPosts() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
+}
+function savePosts(posts) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+}
+function deletePost(id) {
+  if (!confirm('Usunąć post "' + id + '"?')) return;
+  const posts = loadPosts().filter(p => p.id !== id);
+  savePosts(posts);
+  renderPosts();
+}
+function addPost(post) {
+  const posts = loadPosts();
+  posts.unshift(post);
+  savePosts(posts);
+  renderPosts();
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER POSTS
+═══════════════════════════════════════════════ */
+const CAT_LABELS = {arduino:'ARDUINO',embedded:'EMBEDDED',m5stack:'M5STACK',linux:'LINUX',project:'PROJEKT'};
+
+function renderPosts(filter) {
+  if (filter !== undefined) currentFilter = filter;
+  const posts = loadPosts();
+  const container = document.getElementById('posts-container');
+  const filtered = currentFilter ? posts.filter(p => p.cat === currentFilter) : posts;
+  document.getElementById('stat-posts').textContent = posts.length;
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">' +
+      '<div class="es-title">' + (currentFilter ? 'Brak postów w tej kategorii.' : 'Brak postów.') + '</div>' +
+      '<div class="es-sub">' +
+        (isAdmin
+          ? 'Kliknij [+] ./new-post.sh powyżej, aby dodać pierwszy post.'
+          : 'Jeszcze tu cicho. Wróć wkrótce.<br><span style="color:var(--muted)"># admin może dodać posty przez przycisk [+]</span>') +
+      '</div></div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map((p, i) => {
+    const isFirst = i === 0 && !currentFilter;
+    const date = new Date(p.date).toISOString().split('T')[0];
+    return '<article class="post' + (isFirst ? ' featured' : '') + '" data-cat="' + p.cat + '">' +
+      '<div class="post-head">' +
+        '<span class="post-num">[' + String(i+1).padStart(2,'0') + ']</span>' +
+        '<span class="post-cat cat-' + p.cat + '">' + (CAT_LABELS[p.cat]||p.cat.toUpperCase()) + '</span>' +
+        (isFirst ? '<span class="post-hot">[HOT]</span>' : '') +
+        '<span class="post-date">' + date + '</span>' +
+        '<button class="post-del-btn" onclick="deletePost(\'' + p.id + '\')">[rm]</button>' +
+      '</div>' +
+      '<div class="post-body">' +
+        '<div class="post-title"><a href="#">' + escHtml(p.title) + '</a></div>' +
+        '<div class="post-excerpt">' + escHtml(p.excerpt) + '</div>' +
+      '</div>' +
+      '<div class="post-foot">' +
+        '<div class="post-meta-row">' +
+          '<span>' + (p.readTime||5) + ' min czytania</span>' +
+          (p.tags ? '<span>' + escHtml(p.tags) + '</span>' : '') +
+        '</div>' +
+        '<div class="post-stats"><span>views: 0</span></div>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════════════
+   ADMIN MODE
+═══════════════════════════════════════════════ */
+function setAdminMode(on) {
+  isAdmin = on;
+  document.body.classList.toggle('admin-mode', on);
+  document.getElementById('admin-indicator').style.display = on ? 'inline' : 'none';
+  document.getElementById('admin-toggle-btn').textContent = on ? '[logout]' : 'su admin';
+  document.getElementById('session-txt').textContent = on
+    ? 'admin@szuszjan:~ — ROOT SESSION ACTIVE'
+    : 'szuszjan@blog:~ — bash — 120×40';
+  renderPosts();
+}
+
+/* ═══════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════ */
+const loginOverlay = document.getElementById('login-overlay');
+const loginPass    = document.getElementById('login-pass');
+const loginMsg     = document.getElementById('login-msg');
+
+document.getElementById('admin-toggle-btn').addEventListener('click', function() {
+  if (isAdmin) { setAdminMode(false); return; }
+  loginPass.value = '';
+  loginMsg.textContent = '';
+  loginAttempts = 0;
+  loginOverlay.classList.add('show');
+  setTimeout(() => loginPass.focus(), 80);
+});
+
+function tryLogin() {
+  const pw = loginPass.value;
+  if (pw === ADMIN_PASSWORD) {
+    loginOverlay.classList.remove('show');
+    setAdminMode(true);
+    loginMsg.textContent = '';
+  } else {
+    loginAttempts++;
+    loginPass.value = '';
+    loginMsg.textContent = 'Błędne hasło. Próba ' + loginAttempts + '/5.';
+    if (loginAttempts >= 5) {
+      loginMsg.textContent = 'Zbyt wiele prób. Poczekaj chwilę.';
+      document.getElementById('login-btn').disabled = true;
+      setTimeout(() => {
+        document.getElementById('login-btn').disabled = false;
+        loginAttempts = 0;
+        loginMsg.textContent = '';
+      }, 10000);
+    }
+    loginPass.focus();
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', tryLogin);
+document.getElementById('login-cancel').addEventListener('click', () => loginOverlay.classList.remove('show'));
+loginPass.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); if (e.key === 'Escape') loginOverlay.classList.remove('show'); });
+
+/* ═══════════════════════════════════════════════
+   NEW POST FORM
+═══════════════════════════════════════════════ */
+const postFormOverlay = document.getElementById('post-form-overlay');
+
+document.getElementById('add-post-btn').addEventListener('click', function() {
+  document.getElementById('pf-title').value = '';
+  document.getElementById('pf-excerpt').value = '';
+  document.getElementById('pf-tags').value = '';
+  document.getElementById('pf-time').value = '5';
+  document.getElementById('pf-content').value = '';
+  postFormOverlay.classList.add('show');
+  setTimeout(() => document.getElementById('pf-title').focus(), 80);
+});
+
+function closePostForm() { postFormOverlay.classList.remove('show'); }
+
+document.getElementById('pf-close').addEventListener('click', closePostForm);
+document.getElementById('pf-cancel').addEventListener('click', closePostForm);
+
+document.getElementById('pf-save').addEventListener('click', function() {
+  const title   = document.getElementById('pf-title').value.trim();
+  const cat     = document.getElementById('pf-cat').value;
+  const excerpt = document.getElementById('pf-excerpt').value.trim();
+  const tags    = document.getElementById('pf-tags').value.trim();
+  const readTime= parseInt(document.getElementById('pf-time').value) || 5;
+  const content = document.getElementById('pf-content').value;
+
+  if (!title) { alert('Podaj tytuł posta!'); return; }
+  if (!excerpt) { alert('Podaj zajawkę!'); return; }
+
+  const post = {
+    id: 'post-' + Date.now(),
+    title, cat, excerpt, tags, readTime, content,
+    date: new Date().toISOString(),
+    views: 0
+  };
+  addPost(post);
+  closePostForm();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    loginOverlay.classList.remove('show');
+    closePostForm();
+    hideDonut();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && postFormOverlay.classList.contains('show')) {
+    e.preventDefault();
+    document.getElementById('pf-save').click();
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   FILTER TAGS
+═══════════════════════════════════════════════ */
+document.querySelectorAll('.htag').forEach(tag => {
+  tag.addEventListener('click', function() {
+    document.querySelectorAll('.htag').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    renderPosts(this.dataset.filter || null);
+  });
+});
+
+document.querySelectorAll('.tc-tag').forEach(tag => {
+  tag.addEventListener('click', function() {
+    this.classList.toggle('tc-active');
+    this.style.background = this.classList.contains('tc-active') ? 'var(--green)' : '';
+    this.style.color = this.classList.contains('tc-active') ? 'var(--bg)' : '';
+    this.style.borderColor = this.classList.contains('tc-active') ? 'var(--green)' : '';
+  });
+});
+
+/* ═══════════════════════════════════════════════
+   NEWSLETTER
+═══════════════════════════════════════════════ */
+document.getElementById('nl-btn').addEventListener('click', function() {
+  const input = document.getElementById('nl-email');
+  if (input.value.includes('@')) {
+    input.value = '';
+    input.placeholder = 'zapisano! sprawdź email.';
+    this.textContent = '[OK] gotowe';
+    this.style.background = '#55ff55';
+  }
+});
+document.getElementById('nl-email').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('nl-btn').click();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   DONUT.C EASTER EGG
+   Port of Andy Sloane's famous donut.c to JavaScript
+   Original: https://www.a1k0n.net/2011/07/20/donut-math.html
+═══════════════════════════════════════════════════════════ */
+const donutOverlay = document.getElementById('donut-overlay');
+const donutCanvas  = document.getElementById('donut-canvas');
+let donutFrame = null;
+let donutA = 0, donutB = 0;
+
+function donutTick() {
+  const W = 60, H = 22;
+  const chars = '.,-~:;=!*#$@';
+  const output = new Array(W * H).fill(' ');
+  const zbuf   = new Array(W * H).fill(0);
+
+  const sinA = Math.sin(donutA), cosA = Math.cos(donutA);
+  const sinB = Math.sin(donutB), cosB = Math.cos(donutB);
+
+  for (let j = 0; j < 6.28; j += 0.07) {
+    const sinj = Math.sin(j), cosj = Math.cos(j);
+    for (let i = 0; i < 6.28; i += 0.02) {
+      const sini = Math.sin(i), cosi = Math.cos(i);
+      const h = cosj + 2;
+      const D = 1 / (sini * h * sinA + sinj * cosA + 5);
+      const t = sini * h * cosA - sinj * sinA;
+      const x = Math.floor(W/2 + 25 * D * (cosi * h * cosB - t * sinB));
+      const y = Math.floor(H/2 + 11 * D * (cosi * h * sinB + t * cosB));
+      const o = x + W * y;
+      const N = Math.floor(8 * ((sinj * sinA - sini * cosj * cosA) * cosB
+                               - sini * cosj * sinA - sinj * cosA
+                               - cosi * cosj * sinB));
+      if (y >= 0 && y < H && x >= 0 && x < W && D > zbuf[o]) {
+        zbuf[o] = D;
+        output[o] = chars[Math.max(0, N)];
+      }
+    }
+  }
+
+  let lines = '';
+  for (let k = 0; k < H; k++) {
+    lines += output.slice(k * W, (k+1) * W).join('') + '\n';
+  }
+  donutCanvas.textContent = lines;
+  donutA += 0.06;
+  donutB += 0.02;
+}
+
+function showDonut() {
+  donutOverlay.classList.add('show');
+  donutA = 0; donutB = 0;
+  donutFrame = setInterval(donutTick, 50);
+}
+function hideDonut() {
+  donutOverlay.classList.remove('show');
+  if (donutFrame) { clearInterval(donutFrame); donutFrame = null; }
+}
+donutOverlay.addEventListener('click', hideDonut);
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && donutOverlay.classList.contains('show')) hideDonut(); });
+
+/* ═══════════════════════════════════════════════
+   KONAMI CODE → DONUT
+═══════════════════════════════════════════════ */
+const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiIdx = 0;
+document.addEventListener('keydown', function(e) {
+  if (loginOverlay.classList.contains('show') || postFormOverlay.classList.contains('show')) return;
+  if (e.key === KONAMI[konamiIdx]) {
+    konamiIdx++;
+    if (konamiIdx === KONAMI.length) { konamiIdx = 0; showDonut(); }
+  } else {
+    konamiIdx = e.key === KONAMI[0] ? 1 : 0;
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+renderPosts();
+</script>
+</body>
+</html>
